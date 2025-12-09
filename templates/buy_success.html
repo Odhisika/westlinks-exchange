@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Successful • CoinVibe Pay</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <header class="cvp-header">
+    <div class="cvp-header-inner">
+      <a href="/dashboard" class="cvp-brand">
+        <div class="cvp-brand-logo">CV</div>
+        <span>CoinVibe Pay</span>
+      </a>
+      <nav class="cvp-nav">
+        <a href="/dashboard" class="cvp-link">Dashboard</a>
+        <a href="/profile" class="cvp-link">Profile</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="cvp-container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="glass-card" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <i data-lucide="check-circle" style="width: 40px; height: 40px; color: {{ success|yesno:'var(--highlight-green),#ef4444' }};"></i>
+        <div>
+          <h1 style="font-size:1.75rem; font-weight:800; margin:0;">{{ success|yesno:'Payment Successful,Payment Verification Failed' }}</h1>
+          <p class="text-secondary" style="margin-top:0.25rem;">{% if success %}Your payment was processed. We will deliver your asset to the wallet provided.{% else %}Verification failed. If you completed payment, please contact support with your reference.{% endif %}</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="glass-card" style="padding:1rem;">
+          <div class="text-secondary" style="font-size:0.875rem;">Reference</div>
+          <div class="font-mono" style="font-weight:600;">{{ reference }}</div>
+        </div>
+        <div class="glass-card" style="padding:1rem;">
+          <div class="text-secondary" style="font-size:0.875rem;">Status</div>
+          <div style="font-weight:600; color: {% if success %}var(--highlight-green){% else %}#ef4444{% endif %};">{{ status|capfirst }}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem; display:flex; gap:0.75rem;">
+        <a href="/dashboard" class="btn {% if success %}btn-success{% else %}btn-secondary{% endif %}">Go to Dashboard</a>
+        <a href="/buy" class="btn btn-primary">Start a New Buy</a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up - CoinVibe Pay{% endblock %}
+{% block content %}
+<section class="cvp-container"
+  style="margin-top: 4rem; margin-bottom: 4rem; min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+  <div class="glass-card" style="max-width: 550px; width: 100%;">
+    <div class="text-center mb-4">
+      <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Create Your Account</h1>
+      <p class="text-secondary">Join thousands trading crypto</p>
+    </div>
+
+    <form onsubmit="submitRegister(event)" style="display: grid; gap: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div>
+          <label>Full Name</label>
+          <input id="regName" type="text" class="field" placeholder="John Doe" required />
+        </div>
+        <div>
+          <label>Country</label>
+          <select id="regCountry" class="field">
+            <option value="GH">Ghana</option>
+            <option value="NG">Nigeria</option>
+            <option value="KE">Kenya</option>
+            <option value="ZA">South Africa</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input id="regEmail" type="email" class="field" placeholder="you@example.com" required />
+      </div>
+
+      <div>
+        <label>Mobile Money Number</label>
+        <input id="regMomo" type="tel" class="field" placeholder="0591234567" required />
+      </div>
+
+      <div>
+        <label>Create Password</label>
+        <input id="regPassword" type="password" class="field" placeholder="Strong password" required />
+      </div>
+
+      <div id="regError"
+        style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 0.75rem; color: #ef4444; font-size: 0.875rem;">
+      </div>
+
+      <button type="submit" class="btn btn-success" style="width: 100%;">Create Account</button>
+    </form>
+
+    <div class="text-center" style="margin-top: 1.5rem;">
+      <a href="/login" class="text-cyan" style="text-decoration: none; transition: color 0.3s;">Already have an account?
+        Sign In</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const API_URL = window.location.origin + '/api';
+
+  async function submitRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const country = document.getElementById('regCountry').value;
+    const email = document.getElementById('regEmail').value.trim();
+    const momo_number = document.getElementById('regMomo').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const err = document.getElementById('regError');
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = btn.innerHTML;
+
+    // Reset error
+    err.style.display = 'none';
+    err.textContent = '';
+    err.style.background = 'rgba(239, 68, 68, 0.1)';
+    err.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    err.style.color = '#ef4444';
+
+    // Set loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"></i> Creating Account...';
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+    try {
+      const res = await fetch(`${API_URL}/vendors/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, country, email, momo_number, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.detail || 'Registration failed');
+      }
+
+      // Update loading text for auto-login
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"></i> Logging you in...';
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+      const loginRes = await fetch(`${API_URL}/vendors/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const loginData = await loginRes.json();
+
+      if (!loginRes.ok || !loginData.success) {
+        throw new Error(loginData.detail || 'Auto-login failed');
+      }
+
+      // Success feedback
+      err.style.display = 'block';
+      err.style.background = 'rgba(16, 185, 129, 0.1)';
+      err.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      err.style.color = '#10b981';
+      err.textContent = 'Account created successfully! Redirecting...';
+
+      localStorage.setItem('coinvibe_token', loginData.token);
+      localStorage.setItem('coinvibe_user', JSON.stringify(loginData.vendor));
+
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
+
+    } catch (errMsg) {
+      err.textContent = errMsg.message || String(errMsg);
+      err.style.display = 'block';
+      // Reset button
+      btn.disabled = false;
+      btn.innerHTML = originalBtnText;
+    }
+  }
+</script>
+{% endblock %}

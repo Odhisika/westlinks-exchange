@@ -1,0 +1,496 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange History • WestLinks</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-pending_payment {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .status-paid {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status-processing {
+            background: rgba(168, 85, 247, 0.1);
+            color: #a855f7;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Delivery Status Badges */
+        .delivery-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .delivery-pending {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .delivery-processing {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .delivery-delivered {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .delivery-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .exchange-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .exchange-card:hover {
+            border-color: var(--highlight-yellow);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .exchange-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .exchange-direction {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .exchange-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .load-more-btn {
+            margin: 24px auto;
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            width: 64px;
+            height: 64px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Authentication Check -->
+    <script>
+        (function () {
+            const token = localStorage.getItem('coinvibe_token');
+            if (!token || token === 'null' || token === 'undefined' || token === '') {
+                window.location.href = '/login?next=/exchange/history';
+            }
+        })();
+    </script>
+
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/dashboard" class="cvp-brand">
+                <div class="cvp-brand" style="margin-bottom: 1rem;">
+                    <img src="{% static 'images/logo.jpg' %}" alt="WestLinks Exchange"
+                        style="height: 36px; width: auto;">
+                    <span style="margin-left: 0.75rem;">WestLinks</span>
+                </div>
+            </a>
+
+            <!-- Mobile Hamburger Menu Button -->
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
+
+            <!-- Desktop Navigation -->
+            <nav class="cvp-nav">
+                <a href="/dashboard" class="cvp-link">Dashboard</a>
+                <a href="/profile" class="cvp-link">Profile</a>
+                <div id="dashUserMenu" style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+                    <div id="dashAvatar"
+                        style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);background:linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+                        U</div>
+                    <span id="dashUserName" class="text-primary" style="font-weight:600;"></span>
+                    <button onclick="logout()" class="cvp-link"
+                        style="color:#ef4444; background:none; border:none; cursor:pointer;">Logout</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main Menu</div>
+                    <a href="/dashboard" class="sidebar-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="/buy" class="sidebar-link">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <span>Buy Crypto</span>
+                    </a>
+                    <a href="/sell" class="sidebar-link">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <span>Sell Crypto</span>
+                    </a>
+                    <a href="/exchange" class="sidebar-link">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Exchange</span>
+                    </a>
+                    <a href="/exchange/history" class="sidebar-link active">
+                        <i data-lucide="repeat"></i>
+                        <span>Exchange History</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Settings</div>
+                    <a href="/profile" class="sidebar-link">
+                        <i data-lucide="user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Account</div>
+                    <a href="#" class="sidebar-link" onclick="logout(); return false;">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>Exchange History</h1>
+                <p class="text-secondary">View all your currency exchange transactions</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="dashboard-card" style="margin-bottom: 24px;">
+                <div class="dashboard-card-body">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <select id="filterStatus" class="form-control" style="max-width: 200px;"
+                            onchange="loadExchanges()">
+                            <option value="">All Status</option>
+                            <option value="pending_payment">Pending Payment</option>
+                            <option value="paid">Paid</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+
+                        <select id="filterDirection" class="form-control" style="max-width: 200px;"
+                            onchange="loadExchanges()">
+                            <option value="">All Directions</option>
+                            <option value="NGN">NGN → GHS</option>
+                            <option value="GHS">GHS → NGN</option>
+                        </select>
+
+                        <button onclick="loadExchanges()" class="btn btn-secondary">
+                            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exchanges List -->
+            <div id="exchangesList">
+                <div class="text-center" style="padding: 40px;">
+                    <div class="spinner"></div>
+                    <p class="text-secondary">Loading exchanges...</p>
+                </div>
+            </div>
+
+            <!-- Load More -->
+            <div id="loadMoreContainer" class="hidden" style="text-align: center;">
+                <button id="loadMoreBtn" onclick="loadMore()" class="btn btn-secondary load-more-btn">
+                    Load More
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <script>
+        const API_URL = '/api';
+        const token = localStorage.getItem('coinvibe_token');
+        let currentPage = 1;
+        let hasMore = true;
+
+        // Initialize  
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadUserInfo();
+            loadExchanges();
+        });
+
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('coinvibe_user') || '{}');
+            if (user.first_name) {
+                document.getElementById('dashUserName').textContent = user.first_name;
+                document.getElementById('dashAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+            }
+        }
+
+        async function loadExchanges(reset = true) {
+            if (reset) {
+                currentPage = 1;
+                document.getElementById('exchangesList').innerHTML = '<div class="text-center" style="padding: 40px;"><div class="spinner"></div><p class="text-secondary">Loading...</p></div>';
+            }
+
+            const status = document.getElementById('filterStatus').value;
+            const direction = document.getElementById('filterDirection').value;
+
+            try {
+                let url = `${API_URL}/exchange/history?page=${currentPage}`;
+                if (status) url += `&status=${status}`;
+                if (direction) url += `&from_currency=${direction}`;
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to load');
+
+                const data = await res.json();
+
+                if (reset) {
+                    renderExchanges(data.exchanges);
+                } else {
+                    appendExchanges(data.exchanges);
+                }
+
+                hasMore = data.has_more || false;
+                document.getElementById('loadMoreContainer').className = hasMore ? '' : 'hidden';
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('exchangesList').innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="alert-circle"></i>
+            <h3>Failed to load exchanges</h3>
+            <p class="text-secondary">Please try again</p>
+            <button onclick="loadExchanges()" class="btn btn-primary" style="margin-top: 16px;">Retry</button>
+          </div>
+        `;
+                lucide.createIcons();
+            }
+        }
+
+        function renderExchanges(exchanges) {
+            if (!exchanges || exchanges.length === 0) {
+                document.getElementById('exchangesList').innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="inbox"></i>
+            <h3>No exchanges yet</h3>
+            <p class="text-secondary">Your exchange history will appear here</p>
+            <a href="/exchange" class="btn btn-primary" style="margin-top: 16px;">Create Exchange</a>
+          </div>
+        `;
+                lucide.createIcons();
+                return;
+            }
+
+            const html = exchanges.map(ex => createExchangeCard(ex)).join('');
+            document.getElementById('exchangesList').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function appendExchanges(exchanges) {
+            if (!exchanges || exchanges.length === 0) return;
+            const html = exchanges.map(ex => createExchangeCard(ex)).join('');
+            document.getElementById('exchangesList').insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+        }
+
+        function createExchangeCard(ex) {
+            const statusClass = `status-${ex.status.replace('_', '-')}`;
+            const statusText = ex.status.replace('_', ' ').toUpperCase();
+            const date = new Date(ex.created_at).toLocaleString();
+
+            // Delivery Status Logic
+            const deliveryStatus = ex.delivery_status || 'Pending';
+            const deliveryClass = `delivery-${deliveryStatus.toLowerCase()}`;
+            const deliveryIcon = deliveryStatus === 'Delivered' ? 'check-circle' : (deliveryStatus === 'Failed' ? 'x-circle' : 'clock');
+
+            return `
+        <div class="exchange-card">
+          <div class="exchange-header">
+            <div class="exchange-direction">
+              <span>${ex.from_currency}</span>
+              <i data-lucide="arrow-right" style="width: 20px; height: 20px;"></i>
+              <span>${ex.to_currency}</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <span class="status-badge ${statusClass}">${statusText}</span>
+                <span class="delivery-badge ${deliveryClass}">
+                    <i data-lucide="${deliveryIcon}" style="width:12px;height:12px;"></i>
+                    Delivery: ${deliveryStatus}
+                </span>
+            </div>
+          </div>
+
+          <div class="exchange-details">
+            <div class="detail-item">
+              <span class="detail-label">Exchange ID</span>
+              <span class="detail-value" style="font-family: monospace; font-size: 0.9rem;">${ex.exchange_id}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">You Sent</span>
+              <span class="detail-value">${parseFloat(ex.from_amount).toLocaleString()} ${ex.from_currency}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">You Received</span>
+              <span class="detail-value">${parseFloat(ex.to_amount).toLocaleString()} ${ex.to_currency}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Exchange Rate</span>
+              <span class="detail-value">${parseFloat(ex.exchange_rate).toFixed(4)}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Fee</span>
+              <span class="detail-value">${parseFloat(ex.fee_amount).toFixed(2)} ${ex.from_currency}</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Date</span>
+              <span class="detail-value" style="font-size: 0.9rem;">${date}</span>
+            </div>
+
+            ${ex.payment_reference ? `
+            <div class="detail-item">
+              <span class="detail-label">Payment Reference</span>
+              <span class="detail-value" style="font-family: monospace; font-size: 0.85rem;">${ex.payment_reference}</span>
+            </div>
+            ` : ''}
+
+            ${ex.admin_notes ? `
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <span class="detail-label">Admin Notes</span>
+              <span class="detail-value" style="font-size: 0.9rem;">${ex.admin_notes}</span>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+        }
+
+        function loadMore() {
+            currentPage++;
+            loadExchanges(false);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('dashboardSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('active');
+            backdrop.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('coinvibe_token');
+            localStorage.removeItem('coinvibe_user');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+
+</html>

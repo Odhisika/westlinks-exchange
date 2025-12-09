@@ -1,0 +1,378 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - CoinVibe Pay</title>
+    <link rel="stylesheet" href="{% static 'css/modern_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Authentication Check -->
+    <script>
+        (function () {
+            const token = localStorage.getItem('coinvibe_token');
+            if (!token || token === 'null' || token === 'undefined' || token === '') {
+                window.location.href = '/login?next=/transactions';
+            }
+        })();
+    </script>
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/dashboard" class="cvp-brand">
+                <div class="cvp-brand-logo">CV</div>
+                <span>CoinVibe Pay</span>
+            </a>
+
+            <!-- Mobile Hamburger Menu Button -->
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
+
+            <!-- Desktop Navigation -->
+            <nav class="cvp-nav">
+                <a href="/dashboard" class="cvp-link">Dashboard</a>
+                <a href="/profile" class="cvp-link">Profile</a>
+                <div id="dashUserMenu" style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+                    <div id="dashAvatar"
+                        style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);background:linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+                        U</div>
+                    <span id="dashUserName" class="text-primary" style="font-weight:600;"></span>
+                    <button onclick="logout()" class="cvp-link"
+                        style="color:#ef4444; background:none; border:none; cursor:pointer;">Logout</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Main Menu</h3>
+                    <a href="/dashboard" class="sidebar-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="/buy" class="sidebar-link">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <span>Buy Crypto</span>
+                    </a>
+                    <a href="/sell" class="sidebar-link">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <span>Sell Crypto</span>
+                    </a>
+                    <a href="/transactions" class="sidebar-link active">
+                        <i data-lucide="receipt"></i>
+                        <span>Transactions</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Settings</h3>
+                    <a href="/profile" class="sidebar-link">
+                        <i data-lucide="user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="sidebar-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="page-header" style="margin-bottom: var(--spacing-lg);">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                        Transaction History</h1>
+                    <p style="color: var(--text-secondary);">View and manage all your transactions</p>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button id="filterBtn" class="btn btn-secondary"
+                        style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="filter" style="width: 18px; height: 18px;"></i>
+                        Filter
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary"
+                        style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Panel (Hidden by default) -->
+            <div id="filterPanel" class="dashboard-card" style="margin-bottom: var(--spacing-lg); display: none;">
+                <div class="dashboard-card-header">
+                    <h3 class="dashboard-card-title">Filters</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.875rem;">Status</label>
+                            <select id="filterStatus" class="form-control">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.875rem;">Type</label>
+                            <select id="filterType" class="form-control">
+                                <option value="">All</option>
+                                <option value="buy">Buy</option>
+                                <option value="sell">Sell</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end; gap: 8px;">
+                            <button onclick="applyFilters()" class="btn btn-primary" style="flex: 1;">Apply</button>
+                            <button onclick="clearFilters()" class="btn btn-secondary" style="flex: 1;">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3 class="dashboard-card-title">All Transactions</h3>
+                        <p class="dashboard-card-subtitle" id="transactionCount">Loading...</p>
+                    </div>
+                    <button onclick="loadTransactions()" class="btn btn-secondary"
+                        style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
+                        Refresh
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="transactionsTable">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i data-lucide="loader" style="width: 40px; height: 40px;"></i>
+                            </div>
+                            <h4 class="empty-state-title">Loading transactions...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+        const currentUser = localStorage.getItem('coinvibe_user') ? JSON.parse(localStorage.getItem('coinvibe_user')) : null;
+        const tokenRaw = localStorage.getItem('coinvibe_token');
+        const authToken = tokenRaw && tokenRaw !== 'null' && tokenRaw !== 'undefined' && tokenRaw !== '' ? tokenRaw : null;
+
+        if (!authToken || !currentUser) {
+            window.location.href = '/login';
+        }
+
+        let allTransactions = [];
+        let currentFilters = { status: '', type: '' };
+
+        function initHeader() {
+            const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ?
+                (currentUser.name || currentUser.username || currentUser.full_name) : '';
+            document.getElementById('dashUserName').textContent = name;
+            document.getElementById('dashAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
+        }
+
+        function logout() {
+            localStorage.removeItem('coinvibe_token');
+            localStorage.removeItem('coinvibe_user');
+            window.location.href = '/';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('dashboardSidebar').classList.toggle('open');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+                backdrop.classList.toggle('visible');
+            }
+        }
+
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            document.getElementById('filterPanel').style.display =
+                document.getElementById('filterPanel').style.display === 'none' ? 'block' : 'none';
+        });
+
+        async function loadTransactions() {
+            try {
+                if (!authToken) {
+                    console.error('No auth token');
+                    return;
+                }
+
+                const res = await fetch(`${API_URL}/vendors/me/transactions`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await res.json();
+                allTransactions = data.transactions || [];
+
+                document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
+
+                renderTransactions(allTransactions);
+            } catch (e) {
+                console.error('Failed to load transactions:', e);
+                document.getElementById('transactionsTable').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
+            </div>
+            <h4 class="empty-state-title">Error loading transactions</h4>
+            <p class="empty-state-desc">${e.message}</p>
+          </div>`;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+        }
+
+        function applyFilters() {
+            currentFilters.status = document.getElementById('filterStatus').value;
+            currentFilters.type = document.getElementById('filterType').value;
+
+            let filtered = allTransactions;
+
+            if (currentFilters.status) {
+                filtered = filtered.filter(t => t.status === currentFilters.status);
+            }
+
+            if (currentFilters.type) {
+                filtered = filtered.filter(t => t.type === currentFilters.type);
+            }
+
+            document.getElementById('transactionCount').textContent = `${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} found`;
+            renderTransactions(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterType').value = '';
+            currentFilters = { status: '', type: '' };
+            document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
+            renderTransactions(allTransactions);
+        }
+
+        function renderTransactions(transactions) {
+            if (transactions.length === 0) {
+                document.getElementById('transactionsTable').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="receipt" style="width: 40px; height: 40px;"></i>
+            </div>
+            <h4 class="empty-state-title">No transactions found</h4>
+            <p class="empty-state-desc">Try adjusting your filters or create a new transaction</p>
+          </div>`;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+                return;
+            }
+
+            const rows = transactions.map(t => `
+        <tr>
+          <td class="font-mono" style="font-size: 0.875rem;">${t.payment_id}</td>
+          <td>${t.type}</td>
+          <td>${t.fiat_amount ? `₵${Number(t.fiat_amount).toFixed(2)}` : `${t.crypto_amount} ${t.crypto_symbol || 'USDT'}`}</td>
+          <td><span class="badge ${getStatusBadge(t.status)}">${t.status}</span></td>
+          <td class="font-mono hide-mobile" style="font-size: 0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${t.wallet_address || '-'}</td>
+          <td class="hide-mobile">${t.network || '-'}</td>
+          <td class="hide-mobile">${t.crypto_tx_hash ? `<span class="font-mono" style="font-size: 0.75rem;">${t.crypto_tx_hash.substring(0, 10)}...</span>` : '-'}</td>
+          <td style="font-size: 0.875rem;">${new Date(t.created_at).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
+            document.getElementById('transactionsTable').innerHTML = `
+        <div class="table-responsive">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th class="hide-mobile">Wallet Address</th>
+                <th class="hide-mobile">Network</th>
+                <th class="hide-mobile">TX Hash</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                pending: 'badge-warning',
+                completed: 'badge-success',
+                failed: 'badge-danger'
+            };
+            return badges[status] || 'badge-info';
+        }
+
+        function exportTransactions() {
+            // Convert to CSV format
+            const headers = ['Payment ID', 'Type', 'Amount', 'Status', 'Wallet', 'Network', 'TX Hash', 'Date'];
+            const rows = allTransactions.map(t => [
+                t.payment_id,
+                t.type,
+                t.fiat_amount || t.crypto_amount,
+                t.status,
+                t.wallet_address || '',
+                t.network || '',
+                t.crypto_tx_hash || '',
+                new Date(t.created_at).toLocaleString()
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', exportTransactions);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initHeader();
+            loadTransactions();
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        });
+
+        // Close sidebar when clicking backdrop
+        document.getElementById('sidebarBackdrop').addEventListener('click', toggleSidebar);
+    </script>
+</body>
+
+</html>

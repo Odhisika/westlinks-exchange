@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sell Crypto • CoinVibe Pay</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="{% static 'js/sell.js' %}"></script>
+</head>
+
+<body>
+  <!-- Authentication Check -->
+  <script>
+    // Redirect unauthenticated users to login
+    (function () {
+      const token = localStorage.getItem('coinvibe_token');
+      const loggedIn = !!(token && token !== 'null' && token !== 'undefined' && token !== '');
+      if (!loggedIn) {
+        window.location.href = '/login?next=/sell';
+      }
+    })();
+  </script>
+
+  <header class="cvp-header">
+    <div class="cvp-header-inner">
+      <a href="/" class="cvp-brand" id="cvpBrand">
+        <div class="cvp-brand-logo">CV</div>
+        <span>CoinVibe Pay</span>
+      </a>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+        <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+      </button>
+
+      <nav class="cvp-nav">
+        <a href="/dashboard" class="cvp-link">Dashboard</a>
+        <a href="/profile" class="cvp-link">Profile</a>
+      </nav>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobileNav">
+      <a href="/dashboard" class="mobile-nav-link">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/profile" class="mobile-nav-link">
+        <i data-lucide="user"></i>
+        <span>Profile</span>
+      </a>
+      <button onclick="logout()" class="mobile-nav-link"
+        style="background:none; border:none; cursor:pointer; color:#ef4444; text-align:left; width:100%; font-family: inherit; font-size: inherit;">
+        <i data-lucide="log-out"></i>
+        <span>Logout</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="cvp-container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="text-center mb-4">
+      <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">Sell Crypto</h1>
+      <p class="text-secondary">Convert your cryptocurrency to Ghana Cedis</p>
+    </div>
+
+    <div class="glass-card" style="max-width: 700px; margin: 0 auto;">
+      <div style="display: grid; gap: 1.5rem;">
+        <div>
+          <label>Asset</label>
+          <select id="sellAssetSelect" class="field"></select>
+        </div>
+        <div>
+          <label>Amount to Send</label>
+          <input id="sellAmountUSDT" type="number" class="field" placeholder="100.00" oninput="updateSellCalculator()"
+            step="0.01" min="0" />
+        </div>
+
+        <div class="glass-card"
+          style="background: rgba(14, 203, 129, 0.1); border-color: rgba(14, 203, 129, 0.3); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Rate</span>
+            <span class="text-green font-weight: 600;" id="sellRateLabel">₵--/Asset</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Fee (1.5%)</span>
+            <span class="text-primary font-weight: 600;" id="sellFee">₵0.00</span>
+          </div>
+          <div
+            style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+            <span class="text-primary">Total</span>
+            <span class="text-green" id="sellTotal">₵0.00</span>
+          </div>
+        </div>
+
+        <div>
+          <label>MoMo Network</label>
+          <select id="sellMoMoNetwork" class="field">
+            <option value="mtn">MTN Mobile Money</option>
+            <option value="airtel">AirtelTigo Money</option>
+            <option value="vodafone">Vodafone Cash</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Mobile Money Number</label>
+          <input id="sellMoMoNumber" type="tel" class="field" placeholder="0593021696" />
+        </div>
+
+        <div class="glass-card" style="background: var(--bg-secondary); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span class="text-secondary font-weight: 500;">Admin Wallet</span>
+            <button onclick="copyWalletAddress()" class="text-cyan"
+              style="background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 0.875rem; transition: all 0.3s; padding: 8px 12px; border-radius: 8px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+          <div id="confirmAdminWallet" class="font-mono text-xs"
+            style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; word-break: break-all; color: var(--text-primary);">
+            --</div>
+        </div>
+        <div>
+          <label>Blockchain Tx Hash (optional)</label>
+          <input id="sellTxHash" type="text" class="field"
+            placeholder="Paste the transaction hash after sending funds" />
+        </div>
+
+        <button onclick="confirmSell()" class="btn btn-success" style="width: 100%;">Confirm Sell Order</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="sellToast"
+    style="display: none; position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg); background: var(--bg-card); border: 1px solid var(--highlight-green); border-radius: 12px; padding: var(--spacing-md); box-shadow: var(--shadow-lg), var(--glow-green); z-index: 2000; min-width: 300px;">
+    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+      <i data-lucide="check-circle" style="width: 24px; height: 24px; color: var(--highlight-green);"></i>
+      <div>
+        <div style="font-weight: 600; color: var(--text-primary);">Notice</div>
+        <div class="text-secondary" style="font-size: 0.875rem;" id="sellToastMsg">Processing…</div>
+      </div>
+    </div>
+  </div>
+
+
+</body>
+
+</html>

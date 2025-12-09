@@ -1,0 +1,712 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard • CoinVibe Pay</title>
+    <link rel="stylesheet" href="{% static 'css/modern_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/adminOverview.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css/adminExchangerOrders.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script src="{% static 'js/exchangeOrders.js' %}"></script>
+    <script src="{% static 'js/adminOverview.js' %}"></script>
+
+</head>
+
+<body>
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/admin/dashboard" class="cvp-brand">
+                <div class="cvp-brand-logo" style="background: var(--gradient-accent);">AD</div>
+                <span>CoinVibe Admin</span>
+            </a>
+
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <nav class="cvp-nav">
+                <div style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+                    <div
+                        style="width:32px;height:32px;border-radius:50%;background:var(--gradient-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+                        A</div>
+                    <span class="text-primary" style="font-weight:600;">Administrator</span>
+                    <button onclick="adminLogout()" class="cvp-link"
+                        style="color:#ef4444; background:none; border:none; cursor:pointer; margin-left: 1rem;">Logout</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Management</h3>
+                    <button class="sidebar-link active" data-tab="overview" onclick="switchTab('overview')">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Overview</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="vendors" onclick="switchTab('vendors')">
+                        <i data-lucide="users"></i>
+                        <span>Vendors</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="transactions" onclick="switchTab('transactions')">
+                        <i data-lucide="receipt"></i>
+                        <span>Transactions</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="orders" onclick="switchTab('orders')">
+                        <i data-lucide="shopping-cart"></i>
+                        <span>Buy Orders</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="exchange-orders" onclick="switchTab('exchange-orders')">
+                        <i data-lucide="repeat"></i>
+                        <span>Exchange Orders</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="exchanges" onclick="switchTab('exchanges')">
+                        <i data-lucide="arrow-right-left"></i>
+                        <span>Exchanges</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="assets" onclick="switchTab('assets')">
+                        <i data-lucide="coins"></i>
+                        <span>Assets</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">System</h3>
+                    <button class="sidebar-link" data-tab="logs" onclick="switchTab('logs')">
+                        <i data-lucide="file-text"></i>
+                        <span>Audit Logs</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="settings" onclick="switchTab('settings')">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Section -->
+            <section id="tab-overview" class="tab-content">
+                {% include 'admin/overview.html' %}
+            </section>
+
+            <!-- Vendors Section -->
+            <section id="tab-vendors" class="tab-content hidden">
+                <div class="page-header">
+                    <h1>Vendor Management</h1>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div class="flex gap-2 flex-wrap">
+                            <input id="vendorsSearch" placeholder="Search name/email/momo" class="form-control"
+                                style="width: 250px;">
+                            <select id="vendorsStatus" class="form-control" style="width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="verified">Verified</option>
+                                <option value="unverified">Unverified</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="loadVendors()">Search</button>
+                        </div>
+                        <div id="vendorsMeta" class="text-sm text-secondary"></div>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div id="vendorsTable"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions Section -->
+            <section id="tab-transactions" class="tab-content hidden">
+                <div class="page-header">
+                    <h1>Transaction History</h1>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div class="flex gap-2 flex-wrap">
+                            <select id="txType" class="form-control" style="width: 120px;">
+                                <option value="">All Types</option>
+                                <option value="buy">Buy</option>
+                                <option value="sell">Sell</option>
+                            </select>
+                            <select id="txStatus" class="form-control" style="width: 150px;">
+                                <option value="">Any Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="crypto_confirmed">Crypto Confirmed</option>
+                                <option value="paid">Paid</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <input id="txSearch" placeholder="Search payment ID or wallet" class="form-control"
+                                style="width: 200px;">
+                            <button class="btn btn-primary" onclick="loadTransactions()">Filter</button>
+                        </div>
+                        <div id="txMeta" class="text-sm text-secondary"></div>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div id="txTable"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Exchanges Section -->
+            <section id="tab-exchanges" class="tab-content hidden">
+                <div class="page-header">
+                    <h1>Currency Exchanges</h1>
+                </div>
+                <!-- Exchange Rates Config -->
+                <div class="dashboard-card mb-6">
+                    <div class="dashboard-card-header">
+                        <h3 class="dashboard-card-title">Exchange Rates & Limits</h3>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <form onsubmit="updateExchangeRates(event)" class="grid gap-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">NGN to GHS Rate</label>
+                                    <input id="ngnGhsRate" type="number" step="any" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">GHS to NGN Rate</label>
+                                    <input id="ghsNgnRate" type="number" step="0.01" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">Fee Percent (%)</label>
+                                    <input id="exchangeFee" type="number" step="0.1" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">Min GHS</label>
+                                    <input id="minGhs" type="number" step="0.01" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">Max GHS</label>
+                                    <input id="maxGhs" type="number" step="0.01" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">Min NGN</label>
+                                    <input id="minNgn" type="number" step="0.01" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">Max NGN</label>
+                                    <input id="maxNgn" type="number" step="0.01" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="btn btn-primary">Update Rates</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Exchanges List -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div class="flex gap-2 flex-wrap">
+                            <select id="exchangesStatus" class="form-control" style="width: 150px;">
+                                <option value="">Any Status</option>
+                                <option value="pending_payment">Pending Payment</option>
+                                <option value="paid">Paid (Needs Action)</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <input id="exchangesSearch" placeholder="Search ID or email" class="form-control"
+                                style="width: 250px;">
+                            <button class="btn btn-primary" onclick="loadExchanges()">Filter</button>
+                        </div>
+                        <div id="exchangesMeta" class="text-sm text-secondary"></div>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div id="exchangesTable"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Buy Orders Section -->
+            <section id="tab-orders" class="tab-content hidden">
+                <div class="page-header">
+                    <div>
+                        <h1>Buy Orders</h1>
+                        <p class="text-secondary">Manage cryptocurrency buy orders</p>
+                    </div>
+                    <button onclick="loadBuyOrders()" class="btn btn-secondary">
+                        <i data-lucide="refresh-cw" style="width:16px;"></i> Refresh
+                    </button>
+                </div>
+                <!-- Filters -->
+                <div class="dashboard-card" style="margin-bottom: 1.5rem;">
+                    <div class="dashboard-card-body">
+                        <div class="flex gap-3 flex-wrap">
+                            <select id="filterPaymentStatus" class="form-control" style="width: 200px;">
+                                <option value="">All Payment Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <select id="filterDeliveryStatus" class="form-control" style="width: 200px;">
+                                <option value="">All Delivery Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="sent">Sent</option>
+                                <option value="confirmed">Confirmed</option>
+                            </select>
+                            <button onclick="loadBuyOrders()" class="btn btn-primary">Filter</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Orders Table -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body" style="padding:0;">
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Asset</th>
+                                        <th>Amount</th>
+                                        <th>Total (GHS)</th>
+                                        <th>Wallet Address</th>
+                                        <th>Payment</th>
+                                        <th>Delivery</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="buyOrdersTableBody">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-secondary">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Modal for updating buy order -->
+            <div id="updateOrderModal" class="modal" style="display:none;">
+                <div class="modal-overlay" onclick="closeUpdateOrderModal()"></div>
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 id="updateOrderModalTitle">Update Order</h3>
+                        <button onclick="closeUpdateOrderModal()" class="modal-close">&times;</button>
+                    </div>
+
+                    <form id="updateOrderForm" onsubmit="saveOrderUpdate(event)">
+                        <div class="modal-body">
+                            <input type="hidden" id="updateOrderId">
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label>Transaction Hash (optional)</label>
+                                <input id="updateTxHash" type="text" class="form-control" placeholder="0x...">
+                                <small class="text-muted">Blockchain transaction hash</small>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label>Delivery Status</label>
+                                <select id="updateDeliveryStatus" class="form-control">
+                                    <option value="pending">Pending</option>
+                                    <option value="sent">Sent</option>
+                                    <option value="confirmed">Confirmed</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label>Admin Notes (optional)</label>
+                                <textarea id="updateAdminNotes" class="form-control" rows="3"
+                                    placeholder="Internal notes..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeUpdateOrderModal()"
+                                class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% include 'admin/exchangeorders.html' %}
+
+            <section id="tab-assets" class="tab-content hidden">
+                <div class="page-header">
+                    <div>
+                        <h1>Asset Management</h1>
+                        <p class="text-secondary">Manage cryptocurrency assets with custom buy/sell rates and fees
+                        </p>
+                    </div>
+                    <button onclick="openAddAssetModal()" class="btn btn-primary">
+                        <i data-lucide="plus" style="width:16px;"></i> Add Asset
+                    </button>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body" style="padding:0;">
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Asset</th>
+                                        <th>Network</th>
+                                        <th>Buy Rate</th>
+                                        <th>Buy Fee</th>
+                                        <th>Network Fee</th>
+                                        <th>Sell Rate</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assetsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-secondary">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add/Edit Asset Modal -->
+            <div id="assetModal" class="modal" style="display:none;">
+                <div class="modal-overlay" onclick="closeAssetModal()"></div>
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h3 id="assetModalTitle">Add Asset</h3>
+                        <button onclick="closeAssetModal()" class="modal-close">&times;</button>
+                    </div>
+
+                    <form id="assetForm" onsubmit="saveAsset(event)">
+                        <div class="modal-body">
+                            <!-- Basic Info -->
+                            <h4
+                                style="font-size:1.1rem; font-weight:600; margin-bottom:1rem; color:var(--highlight-cyan);">
+                                Basic Information</h4>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                                <div>
+                                    <label>Symbol *</label>
+                                    <input id="assetSymbol" type="text" class="form-control" placeholder="USDT"
+                                        required>
+                                    <small class="text-muted">e.g., USDT, BTC, LTC</small>
+                                </div>
+                                <div>
+                                    <label>Asset Name *</label>
+                                    <input id="assetName" type="text" class="form-control" placeholder="Tether USD"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                                <div>
+                                    <label>Network *</label>
+                                    <select id="assetNetwork" class="form-control" required>
+                                        <option value="">Select Network</option>
+                                        <option value="TRC20">TRC20 (TRON)</option>
+                                        <option value="ERC20">ERC20 (Ethereum)</option>
+                                        <option value="BEP20">BEP20 (BSC)</option>
+                                        <option value="SOLANA">Solana</option>
+                                        <option value="POLYGON">Polygon</option>
+                                        <option value="ARBITRUM">Arbitrum</option>
+                                        <option value="AVALANCHE">Avalanche</option>
+                                        <option value="LITECOIN">Litecoin</option>
+                                        <option value="BITCOIN">Bitcoin</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Wallet Address *</label>
+                                    <input id="assetWallet" type="text" class="form-control"
+                                        placeholder="Admin wallet address" required>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:1.5rem;">
+                                <label>Memo/Tag (optional)</label>
+                                <input id="assetMemo" type="text" class="form-control"
+                                    placeholder="For networks that require memo">
+                            </div>
+                            <hr style="margin: 1.5rem 0; border-color: var(--border-color);">
+                            <!-- Buy Settings -->
+                            <h4
+                                style="font-size:1.1rem; font-weight:600; margin-bottom:1rem; color:var(--highlight-yellow);">
+                                Buy Settings</h4>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                                <div>
+                                    <label>Buy Rate (GHS) *</label>
+                                    <input id="assetBuyRate" type="number" step="0.01" class="form-control"
+                                        placeholder="15.50">
+                                    <small class="text-muted">GHS per unit</small>
+                                </div>
+                                <div>
+                                    <label>Service Fee (%) *</label>
+                                    <input id="assetBuyFeePercent" type="number" step="0.01" class="form-control"
+                                        value="1.50">
+                                    <small class="text-muted">e.g., 1.50 for 1.5%</small>
+                                </div>
+                                <div>
+                                    <label>Network Fee (USD) *</label>
+                                    <input id="assetNetworkFeeUsd" type="number" step="0.000001" class="form-control"
+                                        value="1.00">
+                                    <small class="text-muted">Fixed blockchain fee</small>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                                <div>
+                                    <label>Min Buy Amount (USD)</label>
+                                    <input id="assetMinBuyAmountUsd" type="number" step="0.01" class="form-control"
+                                        value="10.00">
+                                </div>
+                                <div style="display:flex; align-items:center; padding-top:1.8rem;">
+                                    <input id="assetBuyEnabled" type="checkbox" checked style="margin-right:0.5rem;">
+                                    <label style="margin:0;">Buy Enabled</label>
+                                </div>
+                            </div>
+                            <hr style="margin: 1.5rem 0; border-color: var(--border-color);">
+                            <!-- Sell Settings -->
+                            <h4
+                                style="font-size:1.1rem; font-weight:600; margin-bottom:1rem; color:var(--highlight-green);">
+                                Sell Settings</h4>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                                <div>
+                                    <label>Sell Rate (GHS)</label>
+                                    <input id="assetSellRate" type="number" step="0.01" class="form-control"
+                                        placeholder="14.80">
+                                    <small class="text-muted">GHS per unit</small>
+                                </div>
+                                <div style="display:flex; align-items:center; padding-top:1.8rem;">
+                                    <input id="assetSellEnabled" type="checkbox" checked style="margin-right:0.5rem;">
+                                    <label style="margin:0;">Sell Enabled</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeAssetModal()" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Asset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            </section>
+
+            <!-- Audit Logs Section -->
+            <section id="tab-logs" class="tab-content hidden">
+                <div class="page-header">
+                    <h1>Audit Logs</h1>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div class="flex gap-2 flex-wrap">
+                            <input id="logsAction" placeholder="Action (e.g., ADMIN_UPDATED_RATE)" class="form-control">
+                            <input id="logsVendorId" type="number" placeholder="Vendor ID" class="form-control"
+                                style="width: 120px;">
+                            <button class="btn btn-primary" onclick="loadLogs()">Filter</button>
+                        </div>
+                        <div id="logsMeta" class="text-sm text-secondary"></div>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div id="logsTable"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="tab-settings" class="tab-content hidden">
+                <div class="page-header">
+                    <h1>System Settings</h1>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+                    <!-- Global Settings -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3 class="dashboard-card-title">Exchange Rates & Wallet</h3>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <form onsubmit="updateSettings(event)" class="grid gap-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-1">Buy Rate (GHS/USDT)</label>
+                                        <input id="buyRate" type="number" step="0.0001" min="0" class="form-control"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-sm mb-1">Sell Rate (GHS/USDT)</label>
+                                        <input id="sellRate" type="number" step="0.0001" min="0" class="form-control"
+                                            required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-secondary text-sm mb-1">USDT Wallet Address</label>
+                                    <input id="walletAddress" class="form-control" required>
+                                </div>
+                                <div class="flex gap-3 mt-2">
+                                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                                    <button type="button" onclick="resetSettingsForm()"
+                                        class="btn btn-secondary">Reset</button>
+                                </div>
+                            </form>
+                            <div id="settingsStatusBox" class="hidden mt-4 p-3 rounded text-sm"></div>
+                            <div class="mt-4 text-xs text-secondary">Last synced: <span
+                                    id="settingsLastUpdated">Never</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Asset Management -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3 class="dashboard-card-title">Asset Management</h3>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <div class="mb-6">
+                                <h4 class="text-sm font-semibold text-primary mb-3">Add New Asset</h4>
+                                <form id="createAssetForm" onsubmit="createAdminAsset(event)"
+                                    class="grid grid-cols-2 gap-4 p-4 rounded"
+                                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                                    <div>
+                                        <label class="block text-secondary text-xs mb-1">Symbol</label>
+                                        <input type="text" id="newAssetSymbol" class="form-control" placeholder="USDT"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-xs mb-1">Asset Name</label>
+                                        <input type="text" id="newAssetName" class="form-control"
+                                            placeholder="Tether USD" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-xs mb-1">Network</label>
+                                        <input list="networkPresets" id="newAssetNetwork" class="form-control"
+                                            placeholder="Select Network" required>
+                                        <datalist id="networkPresets">
+                                            <option value="BITCOIN">Bitcoin</option>
+                                            <option value="ERC20">Ethereum (ERC-20)</option>
+                                            <option value="TRC20">TRON (TRC-20)</option>
+                                            <option value="BEP20">BSC (BEP-20)</option>
+                                            <option value="SOLANA">Solana</option>
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label class="block text-secondary text-xs mb-1">Sell Rate (Optional)</label>
+                                        <input type="number" step="0.0001" min="0" id="newAssetRate"
+                                            class="form-control" placeholder="Default Rate">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-secondary text-xs mb-1">Wallet Address</label>
+                                        <input type="text" id="newAssetAddress" class="form-control" required>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-secondary text-xs mb-1">Memo / Tag</label>
+                                        <input type="text" id="newAssetMemo" class="form-control">
+                                    </div>
+                                    <div class="col-span-2 flex items-center gap-2">
+                                        <input type="checkbox" id="newAssetEnabled" checked>
+                                        <label for="newAssetEnabled" class="text-sm text-secondary">Enable for
+                                            selling</label>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <button type="submit" class="btn btn-success w-full">Add Asset</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <h4 class="text-sm font-semibold text-primary mb-3">Configured Assets</h4>
+                            <div id="adminAssetsTable"></div>
+                            <div id="assetsToast" class="hidden mt-3 text-sm"></div>
+                        </div>
+                    </div>
+                    <!-- Exchange Payment Settings Card -->
+                    <div class="dashboard-card" style="margin-top: 2rem;">
+                        <div class="dashboard-card-header">
+                            <h2>Payment Settings</h2>
+                            <p class="text-secondary">Configure bank and mobile money details for currency exchanges</p>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <form id="paymentSettingsForm" onsubmit="updateExchangePaymentSettings(event)">
+                                <!-- Nigerian Naira (NGN) Settings -->
+                                <div
+                                    style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+                                    <h3
+                                        style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">
+                                        🇳🇬 Nigerian Naira (NGN) - Bank Transfer
+                                    </h3>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="ngnBankName">Bank Name</label>
+                                            <input type="text" id="ngnBankName" class="form-control"
+                                                placeholder="e.g., GTBank Nigeria">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ngnAccountNumber">Account Number</label>
+                                            <input type="text" id="ngnAccountNumber" class="form-control"
+                                                placeholder="e.g., 0123456789">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ngnAccountName">Account Name</label>
+                                            <input type="text" id="ngnAccountName" class="form-control"
+                                                placeholder="e.g., CoinVibe Pay Ltd">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Ghana Cedis (GHS) Settings -->
+                                <div style="margin-bottom: 2rem;">
+                                    <h3
+                                        style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">
+                                        🇬🇭 Ghana Cedis (GHS) - Mobile Money
+                                    </h3>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="ghsMomoNumber">MoMo Number</label>
+                                            <input type="text" id="ghsMomoNumber" class="form-control"
+                                                placeholder="e.g., 0241234567">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ghsMomoName">MoMo Account Name</label>
+                                            <input type="text" id="ghsMomoName" class="form-control"
+                                                placeholder="e.g., CoinVibe Pay">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ghsMomoNetwork">Network</label>
+                                            <select id="ghsMomoNetwork" class="form-control">
+                                                <option value="MTN">MTN</option>
+                                                <option value="Vodafone">Vodafone</option>
+                                                <option value="AirtelTigo">AirtelTigo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="submit" class="btn btn-primary">Save Payment Settings</button>
+                                    <button type="button" onclick="loadExchangePaymentSettings()"
+                                        class="btn btn-secondary">
+                                        Reload
+                                    </button>
+                                </div>
+                                <div id="paymentSettingsStatus" class="mt-3 hidden"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+
+</body>
+
+</html>

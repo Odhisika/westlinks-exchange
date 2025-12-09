@@ -1,0 +1,138 @@
+<!-- Exchange Orders Section -->
+<section id="tab-exchange-orders" class="tab-content hidden">
+    <div class="page-header">
+        <div>
+            <h1>Currency Exchange Orders</h1>
+            <p class="text-secondary">Manage NGN ⇄ GHS exchange transactions</p>
+        </div>
+        <button onclick="loadExchangeOrders()" class="btn btn-secondary">
+            <i data-lucide="refresh-cw" style="width:16px;"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="dashboard-card" style="margin-bottom: 1.5rem;">
+        <div class="dashboard-card-body">
+            <div class="flex gap-3 flex-wrap">
+                <select id="filterExchangeStatus" class="form-control" style="width: 180px;">
+                    <option value="">All Status</option>
+                    <option value="pending_payment">Pending Payment</option>
+                    <option value="paid">Paid</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+                <select id="filterExchangeDirection" class="form-control" style="width: 180px;">
+                    <option value="">All Directions</option>
+                    <option value="ngn_to_ghs">NGN → GHS</option>
+                    <option value="ghs_to_ngn">GHS → NGN</option>
+                </select>
+                <input id="filterExchangeSearch" type="text" placeholder="Search..." class="form-control"
+                    style="width: 250px;">
+                <button onclick="loadExchangeOrders()" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exchange Orders Table -->
+    <div class="dashboard-card">
+        <div class="dashboard-card-body" style="padding:0;">
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Exchange ID</th>
+                            <th>User</th>
+                            <th>Direction</th>
+                            <th>Sending</th>
+                            <th>Receiving</th>
+                            <th>Rate & Fee</th>
+                            <th>Recipient</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exchangeOrdersTableBody">
+                        <tr>
+                            <td colspan="10" class="text-center text-secondary">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal for updating exchange order -->
+<div id="updateExchangeModal" class="modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeUpdateExchangeModal()"></div>
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 id="updateExchangeModalTitle">Update Exchange</h3>
+            <button onclick="closeUpdateExchangeModal()" class="modal-close">&times;</button>
+        </div>
+
+        <form id="updateExchangeForm" onsubmit="saveExchangeUpdate(event)">
+            <div class="modal-body">
+                <input type="hidden" id="updateExchangeId">
+
+                <!-- Exchange Details (Read-only) -->
+                <div
+                    style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <div id="exchangeDetailsDisplay" style="font-size: 0.9rem;"></div>
+                </div>
+
+                <!-- Action Selection -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Action</label>
+                    <select id="updateExchangeAction" class="form-control" onchange="toggleExchangeActionFields()">
+                        <option value="">Select action...</option>
+                        <option value="confirm_payment">✓ Confirm Payment</option>
+                        <option value="start_processing">🔄 Start Processing</option>
+                        <option value="complete">✅ Mark Complete</option>
+                        <option value="reject">❌ Reject/Fail</option>
+                        <option value="update_notes">📝 Update Notes Only</option>
+                    </select>
+                </div>
+
+                <!-- Payment Reference (for confirm_payment) -->
+                <div id="paymentRefField" style="margin-bottom: 1.5rem; display: none;">
+                    <label>Payment Reference (optional)</label>
+                    <input id="updateExchangePaymentRef" type="text" class="form-control"
+                        placeholder="PST-123456 or Bank Ref">
+                    <small class="text-muted">Paystack or bank transfer reference</small>
+                </div>
+
+                <!-- Admin Notes -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Admin Notes</label>
+                    <textarea id="updateExchangeAdminNotes" class="form-control" rows="3"
+                        placeholder="Internal notes about this exchange..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeUpdateExchangeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for viewing recipient details -->
+<div id="recipientDetailsModal" class="modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeRecipientDetailsModal()"></div>
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>Recipient Details</h3>
+            <button onclick="closeRecipientDetailsModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="recipientDetailsDisplay"></div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeRecipientDetailsModal()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>

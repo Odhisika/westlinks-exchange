@@ -1,0 +1,457 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy Crypto • CoinVibe Pay</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+  <!-- Authentication Check -->
+  <script>
+    // Redirect unauthenticated users to login
+    (function () {
+      const token = localStorage.getItem('coinvibe_token');
+      const loggedIn = !!(token && token !== 'null' && token !== 'undefined' && token !== '');
+      if (!loggedIn) {
+        window.location.href = '/login?next=/buy';
+      }
+    })();
+  </script>
+
+  <header class="cvp-header">
+    <div class="cvp-header-inner">
+      <a href="/" class="cvp-brand" id="cvpBrand">
+        <div class="cvp-brand-logo">CV</div>
+        <span>CoinVibe Pay</span>
+      </a>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+        <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+      </button>
+
+      <nav class="cvp-nav">
+        <a href="/dashboard" class="cvp-link">Dashboard</a>
+        <a href="/profile" class="cvp-link">Profile</a>
+      </nav>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobileNav">
+      <a href="/dashboard" class="mobile-nav-link">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/profile" class="mobile-nav-link">
+        <i data-lucide="user"></i>
+        <span>Profile</span>
+      </a>
+      <button onclick="logout()" class="mobile-nav-link"
+        style="background:none; border:none; cursor:pointer; color:#ef4444; text-align:left; width:100%; font-family: inherit; font-size: inherit;">
+        <i data-lucide="log-out"></i>
+        <span>Logout</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="cvp-container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="text-center mb-4">
+      <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;">Buy USDT</h1>
+      <p class="text-secondary">Purchase cryptocurrency with Ghana Cedis</p>
+    </div>
+
+    <div class="glass-card" style="max-width: 700px; margin: 0 auto;">
+      <div style="display: grid; gap: 1.5rem;">
+        <div>
+          <label>You Pay (GHS)</label>
+          <input id="buyAmountGHS" type="number" class="field" placeholder="500.00" oninput="updateBuyCalculator()"
+            step="0.01" min="0" />
+        </div>
+        <div>
+          <label>You Get (USDT)</label>
+          <input id="buyAmountUSDT" type="text" class="field" readonly style="background: var(--bg-secondary);" />
+        </div>
+
+        <div class="glass-card"
+          style="background: rgba(240, 185, 11, 0.1); border-color: rgba(240, 185, 11, 0.3); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Rate</span>
+            <span class="text-yellow font-weight: 600;" id="buyRateLabel">₵--/Asset</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Amount</span>
+            <span id="buyAmount">₵0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Service Fee (<span id="buyFeePercent">1.5</span>%)</span>
+            <span id="buyServiceFee">₵0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+            <span class="text-secondary">Network Fee</span>
+            <span id="buyNetworkFee">₵0.00</span>
+          </div>
+          <div
+            style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+            <span class="text-primary">Total to Pay</span>
+            <span class="text-yellow" id="buyTotal">₵0.00</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 1rem;">Wallet Details</h3>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+          <div>
+            <label>Asset</label>
+            <select id="buyAssetSelect" class="field">
+              <option value="USDT">USDT</option>
+              <option value="TRX">TRON (TRX)</option>
+              <option value="LTC">Litecoin (LTC)</option>
+            </select>
+          </div>
+          <div>
+            <label>Network</label>
+            <select id="buyNetworkSelect" class="field"></select>
+          </div>
+        </div>
+
+        <div>
+          <label>Your Wallet Address</label>
+          <input id="buyWalletAddress" type="text" class="field" placeholder="Enter wallet address" />
+          <div id="buyWalletError" style="display: none; color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+            Invalid address for selected network.</div>
+          <div class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">Estimated blockchain fee: <span
+              id="buyBlockchainFee" style="font-weight: 600;">--</span></div>
+        </div>
+
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 1rem;">Payment</h3>
+
+        <div class="glass-card"
+          style="background: rgba(14, 203, 129, 0.1); border-color: rgba(14, 203, 129, 0.3); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span class="text-secondary">Subtotal</span>
+            <span class="text-primary font-weight: 600;" id="psSubtotal">₵0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span class="text-secondary">Fee (1.5%)</span>
+            <span class="text-primary font-weight: 600;" id="psFee">₵0.00</span>
+          </div>
+          <div
+            style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+            <span class="text-primary">Total</span>
+            <span class="text-green" id="psTotal">₵0.00</span>
+          </div>
+          <button onclick="openPaystackModal()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Pay with
+            Paystack</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast -->
+  <div id="buyToast"
+    style="display: none; position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg); background: var(--bg-card); border: 1px solid var(--highlight-cyan); border-radius: 12px; padding: var(--spacing-md); box-shadow: var(--shadow-lg), var(--glow-cyan); z-index: 2000; min-width: 300px;">
+    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+      <i data-lucide="info" style="width: 24px; height: 24px; color: var(--highlight-cyan);"></i>
+      <div>
+        <div style="font-weight: 600; color: var(--text-primary);">Notice</div>
+        <div class="text-secondary" style="font-size: 0.875rem;" id="buyToastMsg">Processing…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin + '/api';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const brand = document.getElementById('cvpBrand');
+      const t = localStorage.getItem('coinvibe_token');
+      const loggedIn = !!(t && t !== 'null' && t !== 'undefined' && t !== '');
+      if (brand) brand.setAttribute('href', loggedIn ? '/dashboard' : '/');
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      initMobileMenu();
+    });
+
+    function initMobileMenu() {
+      const toggle = document.getElementById('mobileMenuToggle');
+      const mobileNav = document.getElementById('mobileNav');
+      if (toggle && mobileNav) {
+        toggle.addEventListener('click', function (e) {
+          e.stopPropagation();
+          mobileNav.classList.toggle('active');
+          const icon = toggle.querySelector('i');
+          if (icon) {
+            const currentIcon = icon.getAttribute('data-lucide');
+            icon.setAttribute('data-lucide', currentIcon === 'menu' ? 'x' : 'menu');
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+          }
+        });
+        document.addEventListener('click', function (e) {
+          if (!mobileNav.contains(e.target) && !toggle.contains(e.target)) {
+            mobileNav.classList.remove('active');
+            const icon = toggle.querySelector('i');
+            if (icon) {
+              icon.setAttribute('data-lucide', 'menu');
+              if (window.lucide && lucide.createIcons) lucide.createIcons();
+            }
+          }
+        });
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('coinvibe_token');
+      localStorage.removeItem('coinvibe_user');
+      window.location.href = '/';
+    }
+
+    let buyAssets = [];
+    let buySelectedAsset = null;
+
+    const networkFeeHints = {
+      ERC20: '≈ 0.003–0.01 ETH',
+      TRC20: '≈ 1–3 TRX',
+      BEP20: '≈ 0.0005 BNB',
+      SOLANA: '≈ 0.000005 SOL',
+      AVALANCHE: '≈ 0.003 AVAX',
+      POLYGON: '≈ 0.001 MATIC',
+      ARBITRUM: '≈ 0.0005 ETH',
+      LITECOIN: '≈ 0.0001 LTC'
+    };
+
+    function updateBuyCalculator() {
+
+      const ghsAmount = parseFloat(document.getElementById('buyAmountGHS').value) || 0;
+
+      if (!buySelectedAsset) {
+        document.getElementById('buyRateLabel').textContent = '₵--/Asset';
+        document.getElementById('buyAmount').textContent = '₵0.00';
+        document.getElementById('buyFeePercent').textContent = '1.5';
+        document.getElementById('buyServiceFee').textContent = '₵0.00';
+        document.getElementById('buyNetworkFee').textContent = '₵0.00';
+        document.getElementById('buyTotal').textContent = '₵0.00';
+        document.getElementById('buyAmountUSDT').value = '';
+        return;
+      }
+
+      const rate = buySelectedAsset.buy_rate || 15.20;
+      const feePercent = buySelectedAsset.buy_fee_percent || 1.5;
+      const networkFeeUsd = buySelectedAsset.network_fee_usd || 0;
+
+      const serviceFeeGhs = ghsAmount * (feePercent / 100);
+      const networkFeeGhs = networkFeeUsd * rate;
+      const totalGhs = ghsAmount + serviceFeeGhs + networkFeeGhs;
+      const cryptoAmount = rate > 0 ? (ghsAmount / rate) : 0;
+
+      document.getElementById('buyRateLabel').textContent = `₵${rate.toFixed(2)}/${buySelectedAsset.symbol}`;
+      document.getElementById('buyAmount').textContent = `₵${ghsAmount.toFixed(2)}`;
+      document.getElementById('buyFeePercent').textContent = feePercent.toFixed(2);
+      document.getElementById('buyServiceFee').textContent = `₵${serviceFeeGhs.toFixed(2)}`;
+      document.getElementById('buyNetworkFee').textContent = `₵${networkFeeGhs.toFixed(2)}`;
+      document.getElementById('buyTotal').textContent = `₵${totalGhs.toFixed(2)}`;
+      document.getElementById('buyAmountUSDT').value = cryptoAmount.toFixed(6);
+
+      updatePaystackSummary(totalGhs);
+    }
+    // REPLACE the existing loadBuyAssets function (lines 240-278) with:
+    async function loadBuyAssets() {
+      const res = await fetch(`${API_URL}/public/assets`);
+      const data = await res.json();
+      buyAssets = (data.assets || []).filter(a => a.buy_enabled);
+
+      const assetSel = document.getElementById('buyAssetSelect');
+      const netSel = document.getElementById('buyNetworkSelect');
+      assetSel.innerHTML = '';
+
+      buyAssets.forEach((a, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(a.id);
+        opt.textContent = `${a.symbol} (${a.network})`;
+        if (idx === 0) opt.selected = true;
+        assetSel.appendChild(opt);
+      });
+
+      buySelectedAsset = buyAssets.length ? buyAssets[0] : null;
+      updateNetworkDropdown();
+      updateBuyCalculator();
+
+      assetSel.addEventListener('change', () => {
+        const id = Number(assetSel.value);
+        buySelectedAsset = buyAssets.find(x => x.id === id) || null;
+        updateNetworkDropdown();
+        updateBuyCalculator();
+      });
+    }
+    function updateNetworkDropdown() {
+      const netSel = document.getElementById('buyNetworkSelect');
+      netSel.innerHTML = '';
+
+      if (buySelectedAsset && buySelectedAsset.network) {
+        const opt = document.createElement('option');
+        opt.value = buySelectedAsset.network;
+        opt.textContent = buySelectedAsset.network;
+        opt.selected = true;
+        netSel.appendChild(opt);
+      } else {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Select asset first';
+        netSel.appendChild(opt);
+      }
+    }
+
+
+    function renderBuyNetworks() {
+      const netSel = document.getElementById('buyNetworkSelect');
+      netSel.innerHTML = '';
+      const nets = buySelectedAsset ? filterNetworksForAsset(buySelectedAsset.symbol, buySelectedAsset.networks) : [];
+      nets.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.textContent = networkLabelFromCode(n);
+        netSel.appendChild(opt);
+      });
+      updateBlockchainFeeHint();
+      updateAddressPlaceholder();
+    }
+
+    function updateBlockchainFeeHint() {
+      const feeEl = document.getElementById('buyBlockchainFee');
+      const netSel = document.getElementById('buyNetworkSelect');
+      const hint = networkFeeHints[netSel.value] || '--';
+      feeEl.textContent = hint;
+    }
+
+    function updateAddressPlaceholder() {
+      const addr = document.getElementById('buyWalletAddress');
+      const val = document.getElementById('buyNetworkSelect').value;
+      if (!addr) return;
+      switch (val) {
+        case 'ERC20':
+        case 'BEP20':
+        case 'POLYGON':
+        case 'ARBITRUM':
+        case 'AVALANCHE':
+          addr.placeholder = '0x… (42-char hex address)';
+          break;
+        case 'TRC20':
+          addr.placeholder = 'Starts with T… (TRON address)';
+          break;
+        case 'SOLANA':
+          addr.placeholder = 'Solana base58';
+          break;
+        case 'LITECOIN':
+          addr.placeholder = 'Litecoin (ltc1… or L/M…)';
+          break;
+        default:
+          addr.placeholder = 'Enter wallet address';
+      }
+    }
+
+    function normalizeNetworkCode(s) {
+      s = String(s).toUpperCase();
+      if (s.includes('ERC')) return 'ERC20';
+      if (s.includes('TRC')) return 'TRC20';
+      if (s.includes('BEP')) return 'BEP20';
+      if (s.includes('SOL')) return 'SOLANA';
+      if (s.includes('AVA')) return 'AVALANCHE';
+      if (s.includes('POLY')) return 'POLYGON';
+      if (s.includes('ARBI')) return 'ARBITRUM';
+      if (s.includes('LTC')) return 'LITECOIN';
+      return s;
+    }
+
+    function networkLabelFromCode(code) {
+      const m = {
+        ERC20: 'Ethereum (ERC-20)',
+        TRC20: 'TRON (TRC-20)',
+        BEP20: 'Binance Smart Chain (BEP-20)',
+        SOLANA: 'Solana',
+        AVALANCHE: 'Avalanche',
+        POLYGON: 'Polygon',
+        ARBITRUM: 'Arbitrum',
+        LITECOIN: 'Litecoin'
+      };
+      return m[code] || code;
+    }
+
+    function filterNetworksForAsset(symbol, networks) {
+      symbol = String(symbol).toUpperCase();
+      if (symbol === 'USDT') {
+        const allowed = new Set(['ERC20', 'TRC20', 'BEP20', 'SOLANA', 'AVALANCHE', 'POLYGON', 'ARBITRUM']);
+        return networks.filter(n => allowed.has(String(n).toUpperCase()));
+      }
+      if (symbol === 'TRX') return ['TRC20'];
+      if (symbol === 'LTC') return ['LITECOIN'];
+      return networks;
+    }
+
+
+    function updatePaystackSummary(subtotal) {
+      if (!subtotal) subtotal = 0;
+      const paystackFee = subtotal * 0.015;
+      const total = subtotal + paystackFee;
+      document.getElementById('psSubtotal').textContent = `₵${subtotal.toFixed(2)}`;
+      document.getElementById('psFee').textContent = `₵${paystackFee.toFixed(2)}`;
+      document.getElementById('psTotal').textContent = `₵${total.toFixed(2)}`;
+    }
+
+
+    function showToast(msg) {
+      const el = document.getElementById('buyToast');
+      const m = document.getElementById('buyToastMsg');
+      m.textContent = msg;
+      el.style.display = 'block';
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    async function openPaystackModal() {
+      const t = localStorage.getItem('coinvibe_token');
+      const uRaw = localStorage.getItem('coinvibe_user');
+      const loggedIn = !!(t && t !== 'null' && t !== 'undefined' && t !== '');
+      if (!loggedIn || !uRaw) { window.location.href = '/login'; return; }
+      let u = null; try { u = JSON.parse(uRaw); } catch (_) { }
+      const amount = parseFloat(document.getElementById('buyAmountGHS').value) || 0;
+      const addr = document.getElementById('buyWalletAddress').value.trim();
+      if (!amount || amount <= 0) { showToast('Enter a valid GHS amount'); return; }
+      if (!addr) { showToast('Enter your wallet address'); return; }
+      if (!buySelectedAsset || !buySelectedAsset.id) { showToast('Please select an asset'); return; }
+      try {
+        showToast('Starting payment…');
+        const confirmRes = await fetch(`${API_URL}/buy/confirm`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
+          body: JSON.stringify({
+            asset_id: buySelectedAsset.id,
+            amount_ghs: amount,
+            recipient_address: addr,
+            vendor_email: (u && u.email) ? u.email : ''
+          })
+        });
+        const confirmData = await confirmRes.json();
+        if (!confirmRes.ok || !confirmData.success) { showToast(confirmData.detail || 'Failed to create order'); return; }
+        const order_id = confirmData.order_id;
+        const initRes = await fetch(`${API_URL}/buy/paystack/init`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id, email: (u && u.email) ? u.email : '' })
+        });
+        const initData = await initRes.json();
+        if (!initRes.ok || !initData.success) { showToast(initData.detail || 'Payment init failed'); return; }
+        window.location.href = initData.authorization_url;
+      } catch (e) {
+        showToast('Network error, try again');
+      }
+    }
+
+    loadBuyAssets();
+    updateBuyCalculator();
+  </script>
+</body>
+
+</html>

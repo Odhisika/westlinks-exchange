@@ -1,0 +1,616 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard • WestLinks</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+  <!-- Authentication Check -->
+  <script>
+    (function () {
+      const token = localStorage.getItem('coinvibe_token');
+      if (!token || token === 'null' || token === 'undefined' || token === '') {
+        window.location.href = '/login?next=/dashboard';
+      }
+    })();
+  </script>
+  <header class="cvp-header">
+    <div class="cvp-header-inner">
+      <a href="/dashboard" class="cvp-brand">
+        <div class="cvp-brand" style="margin-bottom: 1rem;">
+          <img src="{% static 'images/logo.jpg' %}" alt="WestLinks Exchange" style="height: 36px; width: auto;">
+          <span style="margin-left: 0.75rem;">WestLinks</span>
+        </div>
+      </a>
+
+      <!-- Mobile Hamburger Menu Button -->
+      <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+        <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+      </button>
+
+      <!-- Desktop Navigation -->
+      <nav class="cvp-nav">
+        <a href="/dashboard" class="cvp-link">Dashboard</a>
+        <a href="/profile" class="cvp-link">Profile</a>
+        <div id="dashUserMenu" style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+          <div id="dashAvatar"
+            style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);background:linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+            U</div>
+          <span id="dashUserName" class="text-primary" style="font-weight:600;"></span>
+          <button onclick="logout()" class="cvp-link"
+            style="color:#ef4444; background:none; border:none; cursor:pointer;">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="dashboardSidebar">
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Main Menu</div>
+          <a href="/dashboard" class="sidebar-link active">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Overview</span>
+          </a>
+          <a href="/buy" class="sidebar-link">
+            <i data-lucide="arrow-down-circle"></i>
+            <span>Buy Crypto</span>
+          </a>
+          <a href="/sell" class="sidebar-link">
+            <i data-lucide="arrow-up-circle"></i>
+            <span>Sell Crypto</span>
+          </a>
+          <a href="/exchange" class="sidebar-link">
+            <i data-lucide="refresh-cw"></i>
+            <span>Exchange</span>
+          </a>
+          <a href="/exchange/history" class="sidebar-link">
+            <i data-lucide="repeat"></i>
+            <span>Exchange History</span>
+          </a>
+          <a href="#" class="sidebar-link" onclick="showTransactionsView(); return false;">
+            <i data-lucide="receipt"></i>
+            <span>Transactions</span>
+          </a>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <a href="/profile" class="sidebar-link">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+          </a>
+          <a href="#" class="sidebar-link" onclick="loadPublicSettings(); return false;">
+            <i data-lucide="refresh-cw"></i>
+            <span>Refresh Rates</span>
+          </a>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Account</div>
+          <a href="#" class="sidebar-link" onclick="logout(); return false;">
+            <i data-lucide="log-out"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Stats Grid -->
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-label">Total Received</span>
+            <div class="stat-icon" style="background: rgba(240, 185, 11, 0.2);">
+              <i data-lucide="trending-up" style="color: var(--highlight-yellow); width: 20px; height: 20px;"></i>
+            </div>
+          </div>
+          <div class="stat-value" id="totalReceived">₵0.00</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-label">Completed</span>
+            <div class="stat-icon" style="background: rgba(14, 203, 129, 0.2);">
+              <i data-lucide="check-circle" style="color: var(--highlight-green); width: 20px; height: 20px;"></i>
+            </div>
+          </div>
+          <div class="stat-value text-green" id="completedCount">0</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-label">Pending</span>
+            <div class="stat-icon" style="background: rgba(240, 185, 11, 0.2);">
+              <i data-lucide="clock" style="color: var(--highlight-yellow); width: 20px; height: 20px;"></i>
+            </div>
+          </div>
+          <div class="stat-value text-yellow" id="pendingCount">0</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-label">Balance</span>
+            <div class="stat-icon" style="background: rgba(0, 212, 255, 0.2);">
+              <i data-lucide="wallet" style="color: var(--highlight-cyan); width: 20px; height: 20px;"></i>
+            </div>
+          </div>
+          <div class="stat-value text-cyan" id="balance">₵0.00</div>
+        </div>
+      </div>
+
+      <!-- Stats Cards (Second Row) -->
+      <div class="quick-actions">
+        <div class="quick-action-btn" style="cursor: default;">
+          <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--highlight-yellow), #f0b90b);">
+            <i data-lucide="trending-down" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="quick-action-label">Total Crypto Bought</span>
+          <span class="quick-action-desc" id="totalBought">0.00 USDT</span>
+        </div>
+
+        <div class="quick-action-btn" style="cursor: default;">
+          <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--highlight-green), #2dd4a0);">
+            <i data-lucide="trending-up" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="quick-action-label">Total Crypto Sold</span>
+          <span class="quick-action-desc" id="totalSold">0.00 USDT</span>
+        </div>
+
+        <a href="/exchange" class="quick-action-btn">
+          <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--highlight-cyan), #00d4ff);">
+            <i data-lucide="arrow-right-left" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="quick-action-label">Exchange</span>
+          <span class="quick-action-desc">NGN ↔ GHS</span>
+        </a>
+
+        <button onclick="refreshRates()" class="quick-action-btn">
+          <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--highlight-cyan), #00d4ff);">
+            <i id="refreshIcon" data-lucide="refresh-cw" style="width: 24px; height: 24px;"></i>
+          </div>
+          <span class="quick-action-label">Refresh Rates</span>
+          <span class="quick-action-desc">Update prices</span>
+        </button>
+      </div>
+
+      <!-- Exchange Rates Card -->
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <div>
+            <h3 class="dashboard-card-title">Live Exchange Rates</h3>
+            <p class="dashboard-card-subtitle">Real-time rates powered by admin settings</p>
+          </div>
+          <div class="dashboard-card-actions">
+            <button onclick="loadPublicSettings()" class="btn btn-secondary"
+              style="padding: 8px 16px; font-size: 0.875rem;">
+              <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="dashboard-card-body">
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md);">
+            <div class="crypto-card" style="text-align: center;">
+              <div class="text-secondary" style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                Buy Rate (GHS → USDT)</div>
+              <div id="dashBuyRate" class="text-yellow"
+                style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">--</div>
+              <div class="text-muted" style="font-size: 0.75rem;">per USDT</div>
+            </div>
+
+            <div class="crypto-card" style="text-align: center;">
+              <div class="text-secondary" style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                Sell Rate (USDT → GHS)</div>
+              <div id="dashSellRate" class="text-green"
+                style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">--</div>
+              <div class="text-muted" style="font-size: 0.75rem;">per USDT</div>
+            </div>
+
+            <div class="crypto-card" style="text-align: center;">
+              <div class="text-secondary" style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
+                Admin Wallet</div>
+              <div class="font-mono text-xs break-all text-primary mb-2" id="dashWallet"
+                style="word-break: break-all; font-size: 0.75rem; margin-bottom: 0.5rem;">--</div>
+              <button onclick="copyText(document.getElementById('dashWallet').textContent)" class="text-cyan"
+                style="background: none; border: none; cursor: pointer; font-size: 0.75rem; text-decoration: underline;">
+                <i data-lucide="copy" style="width: 12px; height: 12px; display: inline; margin-right: 4px;"></i>
+                Copy address
+              </button>
+            </div>
+          </div>
+          <div class="text-muted" style="font-size: 0.75rem; margin-top: var(--spacing-md); text-align: center;">
+            Last updated: <span id="dashSettingsUpdated">--</span>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Transactions Card -->
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <div>
+            <h3 class="dashboard-card-title">Recent Transactions</h3>
+            <p class="dashboard-card-subtitle">Your latest payment activity</p>
+          </div>
+          <div class="dashboard-card-actions">
+            <button onclick="loadTransactions()" class="btn btn-secondary"
+              style="padding: 8px 16px; font-size: 0.875rem;">
+              <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="dashboard-card-body">
+          <div class="dashboard-table-wrapper">
+            <div id="transactionsTable">
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <i data-lucide="receipt" style="width: 40px; height: 40px;"></i>
+                </div>
+                <h4 class="empty-state-title">No transactions yet</h4>
+                <p class="empty-state-desc">Create your first payment link to get started!</p>
+                <button onclick="showCreatePayment()" class="btn btn-primary">
+                  <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                  Create Payment Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+
+
+
+  <script>
+    const API_URL = window.location.origin + '/api';
+    const tokenRaw = localStorage.getItem('coinvibe_token');
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('coinvibe_user') || 'null'); } catch (_) { currentUser = null; }
+    const authToken = tokenRaw && tokenRaw !== 'null' && tokenRaw !== 'undefined' && tokenRaw !== '' ? tokenRaw : null;
+    let publicSettings = null;
+    let sellQuote = null;
+
+    if (!authToken || !currentUser) {
+      window.location.href = '/login';
+    }
+
+    function initHeader() {
+      const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ? (currentUser.name || currentUser.username || currentUser.full_name) : '';
+      const email = currentUser && currentUser.email ? currentUser.email : '';
+
+      // Desktop header
+      document.getElementById('dashUserName').textContent = name;
+      document.getElementById('dashAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
+    }
+
+    function logout() {
+      localStorage.removeItem('coinvibe_token');
+      localStorage.removeItem('coinvibe_user');
+      window.location.href = '/';
+    }
+
+    function toggleSidebar() {
+      document.getElementById('dashboardSidebar').classList.toggle('open');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (backdrop) {
+        backdrop.classList.toggle('visible');
+      }
+    }
+
+    function showCreatePayment() {
+      window.location.href = '/buy';
+    }
+
+    function showSellModal() {
+      window.location.href = '/sell';
+    }
+
+    function closeModal(id) { }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text.trim());
+        alert('Copied to clipboard!');
+      } catch (e) {
+        console.error('Copy failed:', e);
+      }
+    }
+
+    function showTransactionsView() {
+      document.querySelector('.dashboard-card:last-child').scrollIntoView({ behavior: 'smooth' });
+      if (window.innerWidth <= 1024) toggleSidebar();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      initHeader();
+      loadPublicSettings();
+      if (authToken) {
+        loadStats();
+        loadTransactions();
+      } else {
+        window.location.href = '/login';
+      }
+    });
+
+    async function loadStats() {
+      try {
+        if (!authToken) return;
+        const res = await fetch(`${API_URL}/vendors/me/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        if (res.status === 401) { window.location.href = '/login'; return; }
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('totalReceived').textContent = `₵${(data.volume_ghs || 0).toFixed(2)}`;
+          document.getElementById('completedCount').textContent = data.completed || 0;
+          document.getElementById('pendingCount').textContent = (data.total || 0) - (data.completed || 0);
+          document.getElementById('balance').textContent = `₵${(data.volume_ghs || 0).toFixed(2)}`;
+
+          // Update crypto bought/sold stats
+          document.getElementById('totalBought').textContent = `${(data.total_bought_usdt || 0).toFixed(2)} USDT`;
+          document.getElementById('totalSold').textContent = `${(data.total_sold_usdt || 0).toFixed(2)} USDT`;
+        }
+      } catch (e) {
+        console.error('Failed to load stats:', e);
+      }
+    }
+
+    async function loadTransactions() {
+      try {
+        if (!authToken) {
+          console.error('No auth token available');
+          return;
+        }
+        console.log('Fetching transactions from:', `${API_URL}/vendors/me/transactions`);
+        const res = await fetch(`${API_URL}/vendors/me/transactions`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        console.log('Response status:', res.status);
+
+        if (res.status === 401) {
+          console.error('Unauthorized - redirecting to login');
+          window.location.href = '/login';
+          return;
+        }
+
+        const data = await res.json();
+        console.log('Transactions data:', data);
+
+        // Log debug info if available
+        if (data.debug) {
+          console.log('=== DEBUG INFO ===');
+          console.log('Vendor ID:', data.debug.vendor_id);
+          console.log('Vendor Email:', data.debug.vendor_email);
+          console.log('Transactions by vendor FK:', data.debug.trans_by_vendor);
+          console.log('Transactions by email:', data.debug.trans_by_email);
+          console.log('Total in database:', data.debug.total_in_db);
+          console.log('==================');
+        }
+
+        const transactions = data.transactions || [];
+        console.log('Number of transactions:', transactions.length);
+
+        const rows = transactions.map(t => `
+          <tr>
+            <td class="mobile-compact">${t.payment_id}</td>
+            <td>${t.fiat_amount ? `₵${Number(t.fiat_amount).toFixed(2)}` : `${t.crypto_amount} ${t.crypto_symbol || 'USDT'}`}</td>
+            <td><span class="badge ${getStatusBadge(t.status)}">${t.status}</span></td>
+            <td class="hide-mobile" style="font-size: 0.875rem;">${new Date(t.created_at).toLocaleString()}</td>
+            <td class="hide-mobile">${t.type}</td>
+            <td class="hide-mobile font-mono text-xs break-all">${t.wallet_address || '-'}</td>
+          </tr>
+        `).join('');
+
+        const html = `
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th class="mobile-compact">ID</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th class="hide-mobile">Date</th>
+                  <th class="hide-mobile">Type</th>
+                  <th class="hide-mobile">Address</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div class="view-all-transactions">
+            <a href="/transactions" class="btn btn-secondary">
+              <i data-lucide="list" style="width: 18px; height: 18px;"></i>
+              View All Transactions
+            </a>
+          </div>`;
+        document.getElementById('transactionsTable').innerHTML = (rows ? html : `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="receipt" style="width: 40px; height: 40px;"></i>
+            </div>
+            <h4 class="empty-state-title">No transactions yet</h4>
+            <p class="empty-state-desc">Create your first payment link to get started!</p>
+            <button onclick="showCreatePayment()" class="btn btn-primary">
+              <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+              Create Payment Link
+            </button>
+          </div>`);
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      } catch (e) {
+        console.error('Failed to load transactions:', e);
+        document.getElementById('transactionsTable').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
+            </div>
+            <h4 class="empty-state-title">Error loading transactions</h4>
+            <p class="empty-state-desc">${e.message}</p>
+            <button onclick="loadTransactions()" class="btn btn-primary">
+              <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
+              Try Again
+            </button>
+          </div>`;
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+    }
+
+    function getStatusBadge(status) {
+      const badges = { pending: 'badge-warning', completed: 'badge-success', failed: 'badge-danger' };
+      return badges[status] || 'badge-info';
+    }
+
+    async function loadPublicSettings() {
+      try {
+        const res = await fetch(`${API_URL}/public/settings`);
+        const data = await res.json();
+        if (data.success) {
+          publicSettings = data.settings;
+          document.getElementById('dashBuyRate').textContent = publicSettings.buy_rate ? `₵${Number(publicSettings.buy_rate).toFixed(2)}` : '--';
+          document.getElementById('dashSellRate').textContent = publicSettings.sell_rate ? `₵${Number(publicSettings.sell_rate).toFixed(2)}` : '--';
+          document.getElementById('dashWallet').textContent = publicSettings.usdt_wallet_address || 'Not configured';
+          document.getElementById('dashSettingsUpdated').textContent = publicSettings.last_updated ? new Date(publicSettings.last_updated).toLocaleString() : 'N/A';
+        }
+      } catch (e) {
+        console.error('Failed to load settings:', e);
+      }
+    }
+
+    async function refreshRates() {
+      const icon = document.getElementById('refreshIcon');
+      icon.style.animation = 'spin 1s linear infinite';
+      await loadPublicSettings();
+      setTimeout(() => {
+        icon.style.animation = '';
+      }, 1000);
+    }
+
+    async function createPayment(event) { event && event.preventDefault(); window.location.href = '/buy'; }
+
+    function isValidGhanaMomo(num) { return /^0\d{9}$/.test(num); }
+
+    async function requestSellQuote(event) { event && event.preventDefault(); window.location.href = '/sell'; }
+
+    async function confirmSell() { window.location.href = '/sell'; }
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+      }
+    });
+
+
+    (function () {
+      const sidebar = document.getElementById('dashboardSidebar');
+      const toggleBtn = document.querySelector('.sidebar-toggle'); // your FAB
+      const mobileToggle = document.querySelector('.mobile-nav-toggle'); // header hamburger, optional
+      const body = document.body;
+
+      // Create backdrop if not present
+      let backdrop = document.getElementById('sidebarBackdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'sidebarBackdrop';
+        backdrop.className = 'sidebar-backdrop';
+        document.body.appendChild(backdrop);
+      }
+
+      function isMobileWidth() {
+        return window.innerWidth <= 1024;
+      }
+
+      function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('active');
+        backdrop.classList.add('visible');
+        // lock scroll on body
+        body.style.overflow = 'hidden';
+      }
+
+      function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('visible');
+        body.style.overflow = ''; // revert
+      }
+
+      function toggleSidebar() {
+        if (!sidebar) return;
+        if (sidebar.classList.contains('active')) closeSidebar();
+        else openSidebar();
+      }
+
+      // Hook up buttons
+      if (toggleBtn) toggleBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleSidebar();
+      });
+
+      // Optional: header hamburger toggles same overlay (if you want header to open sidebar)
+      if (mobileToggle) mobileToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleSidebar();
+      });
+
+      // clicking backdrop closes sidebar
+      backdrop.addEventListener('click', closeSidebar);
+
+      // Close sidebar automatically when resizing to desktop width
+      window.addEventListener('resize', function () {
+        if (!isMobileWidth()) {
+          // ensure sidebar visible on desktop (remove transform hiding)
+          sidebar.classList.remove('open');
+          backdrop.classList.remove('visible');
+          body.style.overflow = '';
+        } else {
+          // keep it closed if the user had it closed
+        }
+      });
+
+      // If you want to close the sidebar when a nav link is clicked (common on mobile)
+      sidebar.addEventListener('click', function (ev) {
+        const link = ev.target.closest('a');
+        if (link && isMobileWidth()) {
+          // small delay if the link navigates
+          setTimeout(closeSidebar, 150);
+        }
+      });
+
+      // Defensive: ensure initial state correct on load
+      document.addEventListener('DOMContentLoaded', function () {
+        if (isMobileWidth()) {
+          // keep it closed initially
+          sidebar.classList.remove('active');
+          backdrop.classList.remove('visible');
+          body.style.overflow = '';
+        } else {
+          // desktop: ensure not forcing overflow hidden
+          body.style.overflow = '';
+        }
+      });
+    })();
+
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,230 @@
+<!-- Professional Admin Overview Dashboard -->
+<section id="tab-overview" class="tab-content">
+    <div class="overview-header">
+        <div>
+            <h1 class="overview-title">Dashboard Overview</h1>
+            <p class="overview-subtitle">Real-time platform metrics and performance</p>
+        </div>
+        <button onclick="loadOverviewData()" class="btn-refresh">
+            <i data-lucide="refresh-cw"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Main Metrics Grid -->
+    <div class="metrics-grid">
+        <!-- Total Revenue Card -->
+        <div class="metric-card highlight-card">
+            <div class="metric-icon revenue-icon">
+                <i data-lucide="trending-up"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Total Revenue (Today)</div>
+                <div class="metric-value" id="totalRevenueToday">₵0.00</div>
+                <div class="metric-change positive" id="revenueChange">
+                    <i data-lucide="arrow-up"></i>
+                    <span id="revenueWeek">₵0.00 this week</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buy Orders Card -->
+        <div class="metric-card">
+            <div class="metric-icon buy-icon">
+                <i data-lucide="shopping-cart"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Buy Orders</div>
+                <div class="metric-value" id="buyOrdersToday">0</div>
+                <div class="metric-stats">
+                    <span class="stat-item">
+                        <span class="stat-label">Pending:</span>
+                        <span id="buyOrdersPending" class="stat-value">0</span>
+                    </span>
+                    <span class="stat-item">
+                        <span class="stat-label">This Week:</span>
+                        <span id="buyOrdersWeek" class="stat-value">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exchange Orders Card -->
+        <div class="metric-card">
+            <div class="metric-icon exchange-icon">
+                <i data-lucide="repeat"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Currency Exchanges</div>
+                <div class="metric-value" id="exchangesToday">0</div>
+                <div class="metric-stats">
+                    <span class="stat-item">
+                        <span class="stat-label">Processing:</span>
+                        <span id="exchangesProcessing" class="stat-value">0</span>
+                    </span>
+                    <span class="stat-item">
+                        <span class="stat-label">This Week:</span>
+                        <span id="exchangesWeek" class="stat-value">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Vendors Card -->
+        <div class="metric-card">
+            <div class="metric-icon vendor-icon">
+                <i data-lucide="users"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Active Vendors</div>
+                <div class="metric-value" id="vendorsActive">0</div>
+                <div class="metric-stats">
+                    <span class="stat-item">
+                        <span class="stat-label">Total:</span>
+                        <span id="vendorsTotal" class="stat-value">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volume Cards -->
+    <div class="volumes-grid">
+        <!-- Daily Volume -->
+        <div class="volume-card">
+            <div class="volume-header">
+                <h3>Today's Volume</h3>
+                <span class="volume-badge badge-today">24 Hours</span>
+            </div>
+            <div class="volume-stats">
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="shopping-bag"></i>
+                        Buy Orders
+                    </div>
+                    <div class="volume-amount" id="buyVolumeToday">₵0.00</div>
+                </div>
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="repeat"></i>
+                        Exchanges
+                    </div>
+                    <div class="volume-amount" id="exchangeVolumeToday">₵0.00</div>
+                </div>
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="activity"></i>
+                        Transactions
+                    </div>
+                    <div class="volume-amount" id="txVolumeToday">₵0.00</div>
+                </div>
+                <div class="volume-divider"></div>
+                <div class="volume-total">
+                    <div class="volume-label">Total Volume</div>
+                    <div class="volume-amount-lg" id="totalVolumeToday">₵0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Volume -->
+        <div class="volume-card">
+            <div class="volume-header">
+                <h3>Weekly Volume</h3>
+                <span class="volume-badge badge-week">7 Days</span>
+            </div>
+            <div class="volume-stats">
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="shopping-bag"></i>
+                        Buy Orders
+                    </div>
+                    <div class="volume-amount" id="buyVolumeWeek">₵0.00</div>
+                </div>
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="repeat"></i>
+                        Exchanges
+                    </div>
+                    <div class="volume-amount" id="exchangeVolumeWeek">₵0.00</div>
+                </div>
+                <div class="volume-item">
+                    <div class="volume-label">
+                        <i data-lucide="activity"></i>
+                        Transactions
+                    </div>
+                    <div class="volume-amount" id="txVolumeWeek">₵0.00</div>
+                </div>
+                <div class="volume-divider"></div>
+                <div class="volume-total">
+                    <div class="volume-label">Total Volume</div>
+                    <div class="volume-amount-lg" id="totalVolumeWeek">₵0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="status-grid">
+        <div class="status-card">
+            <h3>Buy Orders Status</h3>
+            <div class="status-list">
+                <div class="status-item">
+                    <span class="status-dot dot-warning"></span>
+                    <span class="status-name">Pending Payment</span>
+                    <span class="status-count" id="buyPending">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-success"></span>
+                    <span class="status-name">Paid</span>
+                    <span class="status-count" id="buyPaid">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-info"></span>
+                    <span class="status-name">Total Orders</span>
+                    <span class="status-count" id="buyTotal">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h3>Exchange Status</h3>
+            <div class="status-list">
+                <div class="status-item">
+                    <span class="status-dot dot-warning"></span>
+                    <span class="status-name">Pending</span>
+                    <span class="status-count" id="exchangePending">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-success"></span>
+                    <span class="status-name">Paid</span>
+                    <span class="status-count" id="exchangePaid">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-info"></span>
+                    <span class="status-name">Processing</span>
+                    <span class="status-count" id="exchangeProcessing">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h3>Transaction Status</h3>
+            <div class="status-list">
+                <div class="status-item">
+                    <span class="status-dot dot-warning"></span>
+                    <span class="status-name">Pending</span>
+                    <span class="status-count" id="txPending">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-success"></span>
+                    <span class="status-name">Completed</span>
+                    <span class="status-count" id="txCompleted">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot dot-info"></span>
+                    <span class="status-name">Total</span>
+                    <span class="status-count" id="txTotal">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,519 @@
+{% extends 'base.html' %}
+{% block title %}CoinVibe Pay - P2P Crypto Trading Platform{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="cvp-container">
+    <div class="hero-grid">
+      <!-- Hero Content -->
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+          <span>Trusted by 10,000+ traders</span>
+        </div>
+        <h1 class="hero-title">Trade Crypto Instantly with Ghana Cedis</h1>
+        <p class="hero-subtitle">Buy and sell USDT using Mobile Money. Fast, secure, and reliable P2P trading platform
+          built for Africa.</p>
+
+        <div class="hero-cta">
+          <a href="/buy" class="btn btn-primary btn-lg">
+            <i data-lucide="arrow-down-circle" style="width: 20px; height: 20px;"></i>
+            Buy Crypto
+          </a>
+          <a href="/sell" class="btn btn-success btn-lg">
+            <i data-lucide="arrow-up-circle" style="width: 20px; height: 20px;"></i>
+            Sell Crypto
+          </a>
+        </div>
+
+        <!-- Trust Indicators -->
+        <div class="trust-indicators">
+          <div class="trust-item">
+            <div class="trust-icon">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div>
+              <div class="trust-value">100%</div>
+              <div class="trust-label">Secure</div>
+            </div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-icon">
+              <i data-lucide="zap"></i>
+            </div>
+            <div>
+              <div class="trust-value">&lt;60s</div>
+              <div class="trust-label">Fast Payout</div>
+            </div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-icon">
+              <i data-lucide="users"></i>
+            </div>
+            <div>
+              <div class="trust-value">10K+</div>
+              <div class="trust-label">Users</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Rates Card -->
+      <div class="hero-rates-card">
+        <div class="rates-header">
+          <h3>Live Exchange Rates</h3>
+          <div class="live-indicator">
+            <div class="pulse-dot"></div>
+            <span>Live</span>
+          </div>
+        </div>
+
+        <div class="rates-grid">
+          <!-- Buy Rate -->
+          <div class="rate-item">
+            <div class="rate-label">
+              <i data-lucide="arrow-down-circle" style="width: 18px; height: 18px; color: var(--highlight-yellow);"></i>
+              <span>Buy Rate</span>
+            </div>
+            <div class="rate-value text-yellow" id="heroBuyRate">₵--</div>
+            <div class="rate-sub">per 1 USDT</div>
+            <div class="rate-change positive">
+              <i data-lucide="trending-up" style="width: 12px; height: 12px;"></i>
+              <span>Updated live</span>
+            </div>
+          </div>
+
+          <!-- Sell Rate -->
+          <div class="rate-item">
+            <div class="rate-label">
+              <i data-lucide="arrow-up-circle" style="width: 18px; height: 18px; color: var(--highlight-green);"></i>
+              <span>Sell Rate</span>
+            </div>
+            <div class="rate-value text-green" id="heroSellRate">₵--</div>
+            <div class="rate-sub">per 1 USDT</div>
+            <div class="rate-change positive">
+              <i data-lucide="trending-up" style="width: 12px; height: 12px;"></i>
+              <span>Updated live</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wallet Info -->
+        <div class="wallet-info">
+          <div class="wallet-label">
+            <i data-lucide="wallet" style="width: 16px; height: 16px;"></i>
+            <span>Wallet Address</span>
+          </div>
+          <div class="wallet-address" id="heroWallet">--</div>
+          <button onclick="copyWallet()" class="btn-copy">
+            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+            Copy Address
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="stats-bar">
+  <div class="cvp-container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i data-lucide="activity"></i>
+        </div>
+        <div>
+          <div class="stat-value" id="totalVolume">₵0</div>
+          <div class="stat-label">24h Volume</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i data-lucide="repeat"></i>
+        </div>
+        <div>
+          <div class="stat-value" id="totalTrades">0</div>
+          <div class="stat-label">Completed Trades</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i data-lucide="users"></i>
+        </div>
+        <div>
+          <div class="stat-value">10,000+</div>
+          <div class="stat-label">Active Users</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i data-lucide="clock"></i>
+        </div>
+        <div>
+          <div class="stat-value">&lt; 60s</div>
+          <div class="stat-label">Avg. Payout Time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works">
+  <div class="cvp-container">
+    <div class="section-header">
+      <h2>How It Works</h2>
+      <p>Start trading in three simple steps</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-icon">
+          <i data-lucide="user-plus"></i>
+        </div>
+        <h3>Create Account</h3>
+        <p>Sign up in seconds with just your email. No complicated verification process.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-icon">
+          <i data-lucide="repeat"></i>
+        </div>
+        <h3>Choose Trade</h3>
+        <p>Select buy or sell, enter amount, and get instant quote with live rates.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-icon">
+          <i data-lucide="check-circle"></i>
+        </div>
+        <h3>Complete Trade</h3>
+        <p>Send payment or crypto. Get instant confirmation and payout to your wallet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- P2P Trading Table -->
+<section class="trading-section">
+  <div class="cvp-container">
+    <div class="section-header">
+      <h2>P2P Trading Market</h2>
+      <p>Trade directly with competitive rates</p>
+    </div>
+
+    <div class="trading-table-wrapper">
+      <table class="p2p-table">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Price (GHS)</th>
+            <th>Available</th>
+            <th>Limits</th>
+            <th>Payment Methods</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-row-hover">
+            <td>
+              <div class="asset-cell">
+                <div class="asset-icon"
+                  style="background: linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));">
+                  <span>₮</span>
+                </div>
+                <div>
+                  <div class="asset-name">USDT</div>
+                  <div class="asset-network">TRC20 / ERC20</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="price-cell">
+                <div class="price-value" id="p2pBuyPrice">₵--</div>
+                <div class="price-label">Buy Rate</div>
+              </div>
+            </td>
+            <td>
+              <div class="available-cell">
+                <span class="badge badge-success">Available</span>
+              </div>
+            </td>
+            <td>
+              <div class="limit-cell">₵50 - ₵50,000</div>
+            </td>
+            <td>
+              <div class="payment-methods">
+                <span class="payment-badge">
+                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
+                  MTN
+                </span>
+                <span class="payment-badge">
+                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
+                  Vodafone
+                </span>
+                <span class="payment-badge">
+                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
+                  AirtelTigo
+                </span>
+              </div>
+            </td>
+            <td>
+              <a href="/buy" class="btn btn-primary btn-sm">
+                <i data-lucide="arrow-down-circle" style="width: 16px; height: 16px;"></i>
+                Buy
+              </a>
+            </td>
+          </tr>
+
+          <tr class="table-row-hover">
+            <td>
+              <div class="asset-cell">
+                <div class="asset-icon"
+                  style="background: linear-gradient(135deg, var(--highlight-green), var(--highlight-cyan));">
+                  <span>₮</span>
+                </div>
+                <div>
+                  <div class="asset-name">USDT</div>
+                  <div class="asset-network">TRC20 / ERC20</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="price-cell">
+                <div class="price-value" id="p2pSellPrice">₵--</div>
+                <div class="price-label">Sell Rate</div>
+              </div>
+            </td>
+            <td>
+              <div class="available-cell">
+                <span class="badge badge-success">Available</span>
+              </div>
+            </td>
+            <td>
+              <div class="limit-cell">10 - 10,000 USDT</div>
+            </td>
+            <td>
+              <div class="payment-methods">
+                <span class="payment-badge">
+                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
+                  Mobile Money
+                </span>
+              </div>
+            </td>
+            <td>
+              <a href="/sell" class="btn btn-success btn-sm">
+                <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i>
+                Sell
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+  <div class="cvp-container">
+    <div class="section-header">
+      <h2>Why Choose CoinVibe Pay</h2>
+      <p>Built for Africa, trusted by thousands</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, var(--highlight-green), #2dd4a0); box-shadow: var(--glow-green);">
+          <i data-lucide="zap"></i>
+        </div>
+        <h3>Lightning Fast</h3>
+        <p>Get cash in your mobile money wallet within 60 seconds. No waiting, no delays.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> Instant quotes</li>
+          <li><i data-lucide="check"></i> Fast processing</li>
+          <li><i data-lucide="check"></i> 24/7 availability</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, var(--highlight-yellow), #f5c842); box-shadow: var(--glow-yellow);">
+          <i data-lucide="shield"></i>
+        </div>
+        <h3>Bank-Grade Security</h3>
+        <p>Enterprise-grade security with verified payouts and escrow protection for all trades.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> SSL encryption</li>
+          <li><i data-lucide="check"></i> Escrow protection</li>
+          <li><i data-lucide="check"></i> Verified users</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, var(--highlight-cyan), #33dfff); box-shadow: var(--glow-cyan);">
+          <i data-lucide="wallet"></i>
+        </div>
+        <h3>Multiple Options</h3>
+        <p>Supports TRC20 & ERC20 networks. Trade with MTN, Vodafone, or AirtelTigo.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> TRC20 & ERC20</li>
+          <li><i data-lucide="check"></i> All MoMo providers</li>
+          <li><i data-lucide="check"></i> Flexible limits</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, #a855f7, #c084fc); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);">
+          <i data-lucide="headphones"></i>
+        </div>
+        <h3>24/7 Support</h3>
+        <p>Our dedicated support team is always ready to help you with any questions.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> Live chat support</li>
+          <li><i data-lucide="check"></i> Email support</li>
+          <li><i data-lucide="check"></i> FAQ & guides</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, #f97316, #fb923c); box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);">
+          <i data-lucide="trending-up"></i>
+        </div>
+        <h3>Best Rates</h3>
+        <p>Competitive exchange rates updated in real-time for the best value.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> Live market rates</li>
+          <li><i data-lucide="check"></i> No hidden fees</li>
+          <li><i data-lucide="check"></i> Transparent pricing</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"
+          style="background: linear-gradient(135deg, #06b6d4, #22d3ee); box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);">
+          <i data-lucide="smartphone"></i>
+        </div>
+        <h3>Mobile Friendly</h3>
+        <p>Trade on the go with our fully responsive platform optimized for mobile.</p>
+        <ul class="feature-list">
+          <li><i data-lucide="check"></i> Responsive design</li>
+          <li><i data-lucide="check"></i> Mobile optimized</li>
+          <li><i data-lucide="check"></i> Easy navigation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="cvp-container">
+    <div class="cta-content">
+      <h2>Ready to Start Trading?</h2>
+      <p>Join thousands of traders already using CoinVibe Pay for fast, secure crypto trading</p>
+      <div class="cta-buttons">
+        <a href="/register" class="btn btn-primary btn-lg">
+          <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+          Create Free Account
+        </a>
+        <a href="/buy" class="btn btn-secondary btn-lg">
+          <i data-lucide="arrow-right" style="width: 20px; height: 20px;"></i>
+          Start Trading
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // API_URL is already defined in base.html
+
+  // Copy wallet address
+  function copyWallet() {
+    const wallet = document.getElementById('heroWallet').textContent;
+    if (wallet && wallet !== '--') {
+      navigator.clipboard.writeText(wallet).then(() => {
+        alert('Wallet address copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+  }
+
+  // Format number with commas
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // Update rates from API
+  function updateRates() {
+    fetch(`${API_URL}/public/settings`)
+      .then(r => r.json())
+      .then(d => {
+        const s = d.settings || {};
+        if (s.buy_rate) {
+          const rate = Number(s.buy_rate).toFixed(2);
+          document.getElementById('heroBuyRate').textContent = `₵${rate}`;
+          document.getElementById('p2pBuyPrice').textContent = `₵${rate}`;
+        }
+        if (s.sell_rate) {
+          const rate = Number(s.sell_rate).toFixed(2);
+          document.getElementById('heroSellRate').textContent = `₵${rate}`;
+          document.getElementById('p2pSellPrice').textContent = `₵${rate}`;
+        }
+        if (s.usdt_wallet_address) {
+          document.getElementById('heroWallet').textContent = s.usdt_wallet_address;
+        }
+      })
+      .catch(err => console.error('Failed to fetch rates:', err));
+  }
+
+  // Fetch platform stats
+  function updateStats() {
+    fetch(`${API_URL}/public/stats`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          if (d.volume) {
+            document.getElementById('totalVolume').textContent = `₵${formatNumber(Math.round(d.volume))}`;
+          }
+          if (d.trades) {
+            document.getElementById('totalTrades').textContent = formatNumber(d.trades);
+          }
+        }
+      })
+      .catch(err => {
+        // Set demo values if API fails
+        document.getElementById('totalVolume').textContent = '₵2.5M';
+        document.getElementById('totalTrades').textContent = '15,234';
+      });
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide && lucide.createIcons) {
+      lucide.createIcons();
+    }
+    // Ensure mobile menu is initialized
+    if (typeof initMobileMenu === 'function') {
+      initMobileMenu();
+    }
+    updateRates();
+    updateStats();
+
+    // Update rates every 30 seconds
+    setInterval(updateRates, 30000);
+    // Update stats every 60 seconds
+    setInterval(updateStats, 60000);
+  });
+</script>
+{% endblock %}

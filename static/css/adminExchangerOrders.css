@@ -1,0 +1,402 @@
+/* ========================================
+   EXCHANGE ORDERS STYLING
+   ======================================== */
+
+/* Table Styling */
+#tab-exchange-orders .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#tab-exchange-orders .data-table thead {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 2px solid var(--border-color);
+}
+
+#tab-exchange-orders .data-table th {
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+#tab-exchange-orders .data-table td {
+    padding: 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+#tab-exchange-orders .data-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+#tab-exchange-orders .data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Column Widths */
+#tab-exchange-orders .data-table th:nth-child(1) {
+    width: 10%;
+}
+
+/* Exchange ID */
+#tab-exchange-orders .data-table th:nth-child(2) {
+    width: 12%;
+}
+
+/* User */
+#tab-exchange-orders .data-table th:nth-child(3) {
+    width: 10%;
+}
+
+/* Direction */
+#tab-exchange-orders .data-table th:nth-child(4) {
+    width: 10%;
+}
+
+/* Sending */
+#tab-exchange-orders .data-table th:nth-child(5) {
+    width: 10%;
+}
+
+/* Receiving */
+#tab-exchange-orders .data-table th:nth-child(6) {
+    width: 10%;
+}
+
+/* Rate/Fee */
+#tab-exchange-orders .data-table th:nth-child(7) {
+    width: 15%;
+}
+
+/* Recipient */
+#tab-exchange-orders .data-table th:nth-child(8) {
+    width: 10%;
+}
+
+/* Status */
+#tab-exchange-orders .data-table th:nth-child(9) {
+    width: 8%;
+}
+
+/* Date */
+#tab-exchange-orders .data-table th:nth-child(10) {
+    width: 10%;
+}
+
+/* Actions */
+
+/* Exchange ID Styling */
+#tab-exchange-orders .exchange-id {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Direction Badge */
+.direction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.direction-badge-ngn-ghs {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.direction-badge-ghs-ngn {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Currency Display */
+.currency-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.currency-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.currency-code {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Rate Display */
+.rate-display {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.fee-display {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Recipient Info */
+.recipient-preview {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.view-details-btn {
+    margin-top: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+    background: rgba(108, 92, 231, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.view-details-btn:hover {
+    background: rgba(108, 92, 231, 0.2);
+    border-color: rgba(108, 92, 231, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Status-specific badges */
+.status-badge-pending_payment {
+    background: rgba(245, 176, 65, 0.2);
+    color: #f5b041;
+    border: 1px solid rgba(245, 176, 65, 0.3);
+}
+
+.status-badge-paid {
+    background: rgba(14, 203, 129, 0.2);
+    color: #0ecb81;
+    border: 1px solid rgba(14, 203, 129, 0.3);
+}
+
+.status-badge-processing {
+    background: rgba(41, 182, 246, 0.2);
+    color: #29b6f6;
+    border: 1px solid rgba(41, 182, 246, 0.3);
+}
+
+.status-badge-completed {
+    background: rgba(14, 203, 129, 0.2);
+    color: #0ecb81;
+    border: 1px solid rgba(14, 203, 129, 0.3);
+}
+
+.status-badge-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Action Buttons */
+#tab-exchange-orders .action-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#tab-exchange-orders .btn-update {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+}
+
+#tab-exchange-orders .btn-update:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+}
+
+#tab-exchange-orders .btn-view {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+#tab-exchange-orders .btn-view:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    color: var(--text-primary);
+}
+
+/* Date Styling */
+#tab-exchange-orders .date-display {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Filter Section */
+#tab-exchange-orders .form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+#tab-exchange-orders .form-control:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+/* Modals */
+#updateExchangeModal .modal-content,
+#recipientDetailsModal .modal-content {
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+#updateExchangeModal .modal-header,
+#recipientDetailsModal .modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#updateExchangeModal .modal-header h3,
+#recipientDetailsModal .modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+#updateExchangeModal .modal-body,
+#recipientDetailsModal .modal-body {
+    padding: 2rem;
+}
+
+#updateExchangeModal .modal-footer,
+#recipientDetailsModal .modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+#updateExchangeModal label,
+#recipientDetailsModal label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+#updateExchangeModal .form-control,
+#updateExchangeModal textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+#updateExchangeModal .form-control:focus,
+#updateExchangeModal textarea:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+#updateExchangeModal .text-muted,
+#recipientDetailsModal .text-muted {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Recipient Details Display */
+.recipient-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.recipient-detail-item:last-child {
+    border-bottom: none;
+}
+
+.recipient-detail-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.recipient-detail-value {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1200px) {
+
+    #tab-exchange-orders .data-table th,
+    #tab-exchange-orders .data-table td {
+        padding: 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    #tab-exchange-orders .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #tab-exchange-orders .data-table th,
+    #tab-exchange-orders .data-table td {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .direction-badge,
+    .badge {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.6rem;
+    }
+}

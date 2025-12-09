@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Login - CoinVibe Pay{% endblock %}
+{% block content %}
+<section class="cvp-container"
+  style="margin-top: 4rem; margin-bottom: 4rem; min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+  <div class="glass-card" style="max-width: 450px; width: 100%;">
+    <div class="text-center mb-4">
+      <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Welcome Back</h1>
+      <p class="text-secondary">Sign in to access your account</p>
+    </div>
+
+    <form onsubmit="submitLogin(event)" style="display: grid; gap: 1.5rem;">
+      <div>
+        <label>Email</label>
+        <input id="loginEmail" type="email" class="field" placeholder="you@example.com" required />
+      </div>
+
+      <div style="position: relative;">
+        <label>Password</label>
+        <input id="loginPassword" type="password" class="field" placeholder="Enter your password" required
+          style="padding-right: 44px;" />
+        <button type="button" onclick="togglePassword('loginPassword')"
+          style="position: absolute; right: 12px; top: 42px; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.3s;">
+          <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div id="loginError"
+        style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 0.75rem; color: #ef4444; font-size: 0.875rem;">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+    </form>
+
+    <div class="text-center" style="margin-top: 1.5rem;">
+      <a href="/register" class="text-cyan" style="text-decoration: none; transition: color 0.3s;">Don't have an
+        account? Create one</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const API_URL = window.location.origin + '/api';
+
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  async function submitLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginError');
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = btn.innerHTML;
+
+    // Reset error
+    err.style.display = 'none';
+    err.textContent = '';
+    err.style.background = 'rgba(239, 68, 68, 0.1)';
+    err.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    err.style.color = '#ef4444';
+
+    // Set loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"></i> Signing In...';
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+    try {
+      const res = await fetch(`${API_URL}/vendors/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.detail || 'Login failed');
+      }
+
+      // Success feedback
+      err.style.display = 'block';
+      err.style.background = 'rgba(16, 185, 129, 0.1)';
+      err.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      err.style.color = '#10b981';
+      err.textContent = 'Login successful! Redirecting...';
+
+      localStorage.setItem('coinvibe_token', data.token);
+      localStorage.setItem('coinvibe_user', JSON.stringify(data.vendor));
+
+      // Small delay to show success message
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
+
+    } catch (errMsg) {
+      err.textContent = errMsg.message || String(errMsg);
+      err.style.display = 'block';
+      // Reset button
+      btn.disabled = false;
+      btn.innerHTML = originalBtnText;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  });
+</script>
+{% endblock %}
