@@ -295,7 +295,10 @@
           <td class="font-mono" style="font-size: 0.875rem;">${t.payment_id}</td>
           <td>${t.type}</td>
           <td>${t.fiat_amount ? `₵${Number(t.fiat_amount).toFixed(2)}` : `${t.crypto_amount} ${t.crypto_symbol || 'USDT'}`}</td>
-          <td><span class="badge ${getStatusBadge(t.status)}">${t.status}</span></td>
+          <td>
+            <span class="badge ${getStatusBadge(t.status)}">${t.status}</span>
+            ${t.delivery_status && t.delivery_status !== 'pending' ? `<br><span class="badge ${getStatusBadge(t.delivery_status)}" style="margin-top:4px; font-size:0.7rem;">${t.delivery_status}</span>` : ''}
+          </td>
           <td class="font-mono hide-mobile" style="font-size: 0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${t.wallet_address || '-'}</td>
           <td class="hide-mobile">${t.network || '-'}</td>
           <td class="hide-mobile">${t.crypto_tx_hash ? `<span class="font-mono" style="font-size: 0.75rem;">${t.crypto_tx_hash.substring(0, 10)}...</span>` : '-'}</td>
@@ -328,10 +331,14 @@
         function getStatusBadge(status) {
             const badges = {
                 pending: 'badge-warning',
+                paid: 'badge-info',
+                sent: 'badge-primary',
+                confirmed: 'badge-success',
                 completed: 'badge-success',
-                failed: 'badge-danger'
+                failed: 'badge-danger',
+                processing: 'badge-info'
             };
-            return badges[status] || 'badge-info';
+            return badges[status] || 'badge-secondary';
         }
 
         function exportTransactions() {

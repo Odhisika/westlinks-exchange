@@ -434,7 +434,9 @@ class AdminBuyOrdersView(APIView):
         payment_status_f = request.GET.get('payment_status','').strip()
         delivery_status_f = request.GET.get('delivery_status','').strip()
         q = request.GET.get('q','').strip()
+        
         qs = BuyOrder.objects.all()
+        
         if status_f:
             qs = qs.filter(status=status_f)
         if payment_status_f:
@@ -443,14 +445,17 @@ class AdminBuyOrdersView(APIView):
             qs = qs.filter(delivery_status=delivery_status_f)
         if q:
             qs = qs.filter(Q(order_id__icontains=q) | Q(recipient_address__icontains=q))
-        items = [
-            {
+            
+        items = []
+        for b in qs.order_by('-created_at')[:500]:
+            # The fix is here: we handle None values safely
+            items.append({
                 'id': b.id,
                 'order_id': b.order_id,
                 'asset_symbol': b.asset_symbol,
-                'amount_ghs': float(b.amount_ghs),
-                'usdt_amount': float(b.usdt_amount),
-                'total_ghs': float(b.total_charge_ghs),
+                'amount_ghs': float(b.amount_ghs) if b.amount_ghs else 0.0,
+                'usdt_amount': float(b.usdt_amount) if b.usdt_amount else 0.0,
+                'total_ghs': float(b.total_charge_ghs) if b.total_charge_ghs else 0.0,
                 'network': b.network,
                 'recipient_address': b.recipient_address,
                 'tx_hash': b.tx_hash or '',
@@ -462,9 +467,8 @@ class AdminBuyOrdersView(APIView):
                 'delivered_at': b.delivered_at.isoformat() if b.delivered_at else None,
                 'completed_at': b.completed_at.isoformat() if b.completed_at else None,
                 'admin_notes': b.admin_notes or '',
-            }
-            for b in qs.order_by('-created_at')[:500]
-        ]
+            })
+            
         return Response({'success': True, 'orders': items, 'total': qs.count()})
 
 class AdminBuyOrderUpdateView(APIView):
@@ -500,12 +504,18 @@ class AdminBuyOrderUpdateView(APIView):
         order.save()
         
         # Also update related transaction if exists
+        # Also update related transaction if exists
         try:
             tx = Transaction.objects.filter(payment_id=order.order_id, type='buy').first()
-            if tx and order.status == 'completed':
-                tx.status = 'completed'
-                tx.crypto_tx_hash = order.tx_hash
-                tx.completed_at = order.completed_at
+            if tx:
+                if order.status == 'completed':
+                    tx.status = 'completed'
+                    tx.crypto_tx_hash = order.tx_hash
+                    tx.completed_at = order.completed_at
+                elif order.delivery_status == 'sent':
+                    tx.status = 'sent'
+                    tx.crypto_tx_hash = order.tx_hash
+                
                 tx.save()
         except Exception:
             pass
@@ -686,3 +696,57 @@ class AdminExchangeUpdateView(APIView):
         
         exchange.save()
         return Response({'success': True, 'message': 'Exchange updated successfully'})
+
+class AdminSellOrdersView(APIView):
+    @require_permission('view_dashboard')
+    def get(self, request):
+        status_f = request.GET.get('status','').strip()
+        q = request.GET.get('q','').strip()
+        qs = Transaction.objects.filter(type='sell')
+        if status_f:
+            qs = qs.filter(status=status_f)
+        if q:
+            qs = qs.filter(Q(payment_id__icontains=q) | Q(customer_email__icontains=q) | Q(wallet_address__icontains=q))
+        
+        items = [
+            {
+                'payment_id': t.payment_id,
+                'type': t.type,
+                'vendor_email': t.vendor.email if t.vendor else '',
+                'crypto_amount': t.crypto_amount,
+                'crypto_symbol': t.crypto_symbol,
+                'network': t.network,
+                'wallet_address': t.wallet_address,
+                'customer_email': t.customer_email,
+                'fiat_amount': t.fiat_amount,
+                'exchange_rate': t.exchange_rate,
+                'coinvibe_fee': t.coinvibe_fee,
+                'status': t.status,
+                'crypto_tx_hash': t.crypto_tx_hash or '',
+                'created_at': t.created_at.isoformat(),
+            }
+            for t in qs.order_by('-created_at')[:500]
+        ]
+        return Response({'success': True, 'orders': items, 'total': qs.count()})
+
+class AdminSellOrderUpdateView(APIView):
+    @require_permission('manage_admin_users')
+    def put(self, request, payment_id: str):
+        try:
+            t = Transaction.objects.get(payment_id=payment_id, type='sell')
+        except Transaction.DoesNotExist:
+            return Response({'success': False, 'detail': 'Order not found'}, status=404)
+        
+        status_val = request.data.get('status')
+        
+        if status_val:
+            t.status = status_val
+            if status_val == 'paid':
+                # You might want to add a paid_at field to Transaction model if strictly needed, 
+                # but for now we rely on status.
+                pass
+            elif status_val == 'completed':
+                t.completed_at = timezone.now()
+        
+        t.save()
+        return Response({'success': True, 'message': 'Order updated successfully'})

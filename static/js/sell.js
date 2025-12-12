@@ -104,8 +104,35 @@ function showToast(msg) {
 function copyWalletAddress() {
     const wallet = selectedSellAsset && selectedSellAsset.wallet_address ? selectedSellAsset.wallet_address : '';
     if (wallet) {
-        navigator.clipboard.writeText(wallet);
-        showToast('Wallet address copied to clipboard');
+        // Fallback for non-secure contexts (HTTP)
+        if (!navigator.clipboard) {
+            const textArea = document.createElement("textarea");
+            textArea.value = wallet;
+            textArea.style.position = "fixed";  // Avoid scrolling to bottom
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Wallet address copied to clipboard');
+                } else {
+                    showToast('Failed to copy address');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+                showToast('Failed to copy address');
+            }
+            document.body.removeChild(textArea);
+            return;
+        }
+
+        navigator.clipboard.writeText(wallet).then(() => {
+            showToast('Wallet address copied to clipboard');
+        }).catch(err => {
+            console.error('Copy failed:', err);
+            showToast('Failed to copy address');
+        });
     }
 }
 

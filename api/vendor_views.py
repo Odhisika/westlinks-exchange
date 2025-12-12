@@ -3,7 +3,7 @@ from django.db.models import Q, Sum, Count
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Vendor, VendorSession, Transaction
+from .models import Vendor, VendorSession, Transaction, BuyOrder
 import secrets
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -99,6 +99,10 @@ class VendorTransactionsView(APIView):
         # Get transactions
         qs = Transaction.objects.filter(vendor=v).order_by('-created_at')[:500]
         
+        # Fetch BuyOrder delivery statuses
+        buy_payment_ids = [t.payment_id for t in qs if t.type == 'buy']
+        buy_orders = {b.order_id: b.delivery_status for b in BuyOrder.objects.filter(order_id__in=buy_payment_ids)}
+        
         data = [
             {
                 'payment_id': t.payment_id,
@@ -110,6 +114,7 @@ class VendorTransactionsView(APIView):
                 'wallet_address': t.wallet_address,
                 'crypto_tx_hash': t.crypto_tx_hash,
                 'status': t.status,
+                'delivery_status': buy_orders.get(t.payment_id) if t.type == 'buy' else None,
                 'created_at': t.created_at.isoformat(),
             }
             for t in qs

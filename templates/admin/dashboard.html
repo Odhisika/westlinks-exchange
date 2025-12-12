@@ -15,6 +15,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="{% static 'js/admin.js' %}"></script>
     <script src="{% static 'js/exchangeOrders.js' %}"></script>
+    <script src="{% static 'js/adminSellOrders.js' %}"></script>
     <script src="{% static 'js/adminOverview.js' %}"></script>
 
 </head>
@@ -65,6 +66,10 @@
                     <button class="sidebar-link" data-tab="orders" onclick="switchTab('orders')">
                         <i data-lucide="shopping-cart"></i>
                         <span>Buy Orders</span>
+                    </button>
+                    <button class="sidebar-link" data-tab="sell-orders" onclick="switchTab('sell-orders')">
+                        <i data-lucide="banknote"></i>
+                        <span>Sell Orders</span>
                     </button>
                     <button class="sidebar-link" data-tab="exchange-orders" onclick="switchTab('exchange-orders')">
                         <i data-lucide="repeat"></i>
@@ -339,6 +344,42 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Sell Orders Section -->
+            <section id="tab-sell-orders" class="tab-content hidden">
+                <div class="page-header">
+                    <div>
+                        <h1>Sell Orders</h1>
+                        <p class="text-secondary">Manage cryptocurrency sell orders</p>
+                    </div>
+                    <button onclick="loadSellOrders()" class="btn btn-secondary">
+                        <i data-lucide="refresh-cw" style="width:16px;"></i> Refresh
+                    </button>
+                </div>
+                <!-- Filters -->
+                <div class="dashboard-card" style="margin-bottom: 1.5rem;">
+                    <div class="dashboard-card-body">
+                        <div class="flex gap-3 flex-wrap">
+                            <select id="sellOrdersStatus" class="form-control" style="width: 200px;">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <input id="sellOrdersSearch" placeholder="Search ID or Wallet" class="form-control"
+                                style="width: 250px;">
+                            <button onclick="loadSellOrders()" class="btn btn-primary">Filter</button>
+                        </div>
+                        <div id="sellOrdersMeta" class="text-sm text-secondary mt-2"></div>
+                    </div>
+                </div>
+                <!-- Orders Table -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body" style="padding:0;">
+                        <div id="sellOrdersTable"></div>
+                    </div>
+                </div>
+            </section>
 
             {% include 'admin/exchangeorders.html' %}
 
@@ -706,6 +747,58 @@
     <!-- Backdrop for mobile sidebar -->
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
+
+    <div id="updateOrderModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div
+            style="background: #1e293b; padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 id="updateOrderModalTitle" style="font-size: 1.25rem; font-weight: 600; color: #fff; margin: 0;">
+                    Update Order</h3>
+                <button type="button" onclick="closeUpdateOrderModal()"
+                    style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+            </div>
+
+            <form onsubmit="saveOrderUpdate(event)">
+                <input type="hidden" id="updateOrderId">
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.875rem;">Delivery
+                        Status</label>
+                    <select id="updateDeliveryStatus" class="form-control"
+                        style="width: 100%; padding: 0.6rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px;">
+                        <option value="pending">Pending</option>
+                        <option value="sent">Sent</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.875rem;">Transaction
+                        Hash</label>
+                    <input type="text" id="updateTxHash" class="form-control" placeholder="Enter TX Hash"
+                        style="width: 100%; padding: 0.6rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px;">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.875rem;">Admin
+                        Notes</label>
+                    <textarea id="updateAdminNotes" class="form-control" rows="3" placeholder="Internal notes..."
+                        style="width: 100%; padding: 0.6rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" onclick="closeUpdateOrderModal()" class="btn btn-secondary"
+                        style="padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; background: #475569; color: white; border: none;">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; background: #3b82f6; color: white; border: none;">Save
+                        Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 

@@ -13,6 +13,8 @@ from .admin_views import (
     AdminExchangeRatesView,
     AdminExchangesView,
     AdminExchangeUpdateView,
+    AdminSellOrdersView,
+    AdminSellOrderUpdateView,
 )
 from .admin_payment_settings_view import AdminExchangePaymentSettingsView
 
@@ -31,4 +33,6 @@ urlpatterns = [
     path('exchange-payment-settings', AdminExchangePaymentSettingsView.as_view()),
     path('exchanges', AdminExchangesView.as_view()),
     path('exchanges/<str:exchange_id>', AdminExchangeUpdateView.as_view()),
+    path('sell-orders', AdminSellOrdersView.as_view()),
+    path('sell-orders/<str:payment_id>', AdminSellOrderUpdateView.as_view()),
 ]

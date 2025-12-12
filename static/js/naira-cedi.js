@@ -298,28 +298,55 @@ async function confirmPayment(currency) {
 
 
 function copyToClipboard(text, buttonId) {
-    navigator.clipboard.writeText(text).then(() => {
-        // Show toast
-        showToast(`✅ Copied: ${text}`);
-
-        // Update button state
-        const btn = document.getElementById(buttonId);
-        if (btn) {
-            btn.classList.add('copied');
-            btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Copied';
-            lucide.createIcons();
-
-            // Reset after 2 seconds
-            setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i>';
-                lucide.createIcons();
-            }, 2000);
+    // Fallback for non-secure contexts (HTTP)
+    if (!navigator.clipboard) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";  // Avoid scrolling to bottom
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess(buttonId, text);
+            } else {
+                alert('Failed to copy');
+            }
+        } catch (err) {
+            console.error('Fallback copy failed', err);
+            alert('Failed to copy');
         }
+        document.body.removeChild(textArea);
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showCopySuccess(buttonId, text);
     }).catch(err => {
         console.error('Copy failed:', err);
         alert('Failed to copy');
     });
+}
+
+function showCopySuccess(buttonId, text) {
+    // Show toast
+    showToast(`✅ Copied: ${text}`);
+
+    // Update button state
+    const btn = document.getElementById(buttonId);
+    if (btn) {
+        btn.classList.add('copied');
+        btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Copied';
+        lucide.createIcons();
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px;"></i>';
+            lucide.createIcons();
+        }, 2000);
+    }
 }
 function showToast(message) {
     // Remove existing toast if any

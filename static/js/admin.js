@@ -68,6 +68,7 @@ function switchTab(tabId) {
     if (tabId === 'vendors') loadVendors();
     if (tabId === 'transactions') loadTransactions();
     if (tabId === 'orders') loadBuyOrders();
+    if (tabId === 'sell-orders') loadSellOrders();
     if (tabId === 'exchange-orders') loadExchangeOrders();
     if (tabId === 'logs') loadLogs();
     if (tabId === 'settings') loadSettingsData();
@@ -84,7 +85,8 @@ function toggleSidebar() {
     if (backdrop) backdrop.classList.toggle('visible');
 }
 
-document.getElementById('sidebarBackdrop').addEventListener('click', toggleSidebar);
+const backdrop = document.getElementById('sidebarBackdrop');
+if (backdrop) backdrop.addEventListener('click', toggleSidebar);
 
 // --- Data Loading Functions ---
 
@@ -807,37 +809,41 @@ function closeAssetModal() {
 
 // Buy Orders Management
 let currentUpdateOrderId = null;
+let currentBuyOrders = [];
+
 async function loadBuyOrders() {
     const key = getAdminKeyOrAlert();
     if (!key) return;
-
     const paymentStatus = document.getElementById('filterPaymentStatus')?.value || '';
     const deliveryStatus = document.getElementById('filterDeliveryStatus')?.value || '';
-
     let url = `${API_URL}/admin/buy-orders`;
     const params = [];
     if (paymentStatus) params.push(`payment_status=${paymentStatus}`);
     if (deliveryStatus) params.push(`delivery_status=${deliveryStatus}`);
     if (params.length) url += '?' + params.join('&');
-
     try {
         const res = await fetch(url, {
             headers: { 'Authorization': `Bearer ${key}` }
         });
-        const data = await res.json();
 
+        if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+        }
+        const data = await res.json();
         if (!data.success) {
             document.getElementById('buyOrdersTableBody').innerHTML =
                 '<tr><td colspan="9" class="text-center text-danger">Failed to load orders</td></tr>';
             return;
         }
-
-        renderBuyOrders(data.orders || []);
+        currentBuyOrders = data.orders || [];
+        renderBuyOrders(currentBuyOrders);
     } catch (e) {
+        console.error("Error loading buy orders:", e);
         document.getElementById('buyOrdersTableBody').innerHTML =
-            '<tr><td colspan="9" class="text-center text-danger">Network error</td></tr>';
+            '<tr><td colspan="9" class="text-center text-danger">Network error (Check console for details)</td></tr>';
     }
 }
+
 function renderBuyOrders(orders) {
     const tbody = document.getElementById('buyOrdersTableBody');
 
@@ -889,7 +895,7 @@ function renderBuyOrders(orders) {
                 </td>
                 <td>
                     ${o.payment_status === 'paid' ? `
-                        <button onclick="openUpdateOrderModal(${o.id}, '${o.order_id}', '${o.delivery_status}', '${o.tx_hash || ''}', '${(o.admin_notes || '').replace(/'/g, "\\'")}' )" 
+                        <button onclick="openUpdateOrderModal(${o.id})" 
                                 class="btn btn-sm btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
                             ${o.delivery_status === 'pending' ? '📦 Mark Sent' :
                     o.delivery_status === 'sent' ? '✅ Confirm' :
@@ -901,6 +907,7 @@ function renderBuyOrders(orders) {
         `;
     }).join('');
 }
+
 function getPaymentStatusBadge(status) {
     const badges = {
         'pending': { text: 'Pending', class: 'badge-warning' },
@@ -910,6 +917,7 @@ function getPaymentStatusBadge(status) {
     };
     return badges[status] || { text: status, class: 'badge-secondary' };
 }
+
 function getDeliveryStatusBadge(status) {
     const badges = {
         'pending': { text: 'Not Sent', class: 'badge-warning' },
@@ -919,13 +927,17 @@ function getDeliveryStatusBadge(status) {
     };
     return badges[status] || { text: status, class: 'badge-secondary' };
 }
-function openUpdateOrderModal(orderId, orderNumber, currentDeliveryStatus, txHash, adminNotes) {
+
+function openUpdateOrderModal(orderId) {
+    const order = currentBuyOrders.find(o => o.id === orderId);
+    if (!order) return;
+
     currentUpdateOrderId = orderId;
-    document.getElementById('updateOrderModalTitle').textContent = `Update Order: ${orderNumber}`;
+    document.getElementById('updateOrderModalTitle').textContent = `Update Order: ${order.order_id}`;
     document.getElementById('updateOrderId').value = orderId;
-    document.getElementById('updateDeliveryStatus').value = currentDeliveryStatus || 'pending';
-    document.getElementById('updateTxHash').value = txHash || '';
-    document.getElementById('updateAdminNotes').value = adminNotes || '';
+    document.getElementById('updateDeliveryStatus').value = order.delivery_status || 'pending';
+    document.getElementById('updateTxHash').value = order.tx_hash || '';
+    document.getElementById('updateAdminNotes').value = order.admin_notes || '';
     document.getElementById('updateOrderModal').style.display = 'flex';
 }
 function closeUpdateOrderModal() {
