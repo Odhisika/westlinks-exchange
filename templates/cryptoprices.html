@@ -1,0 +1,220 @@
+<style>
+    .crypto-card {
+        background: #1e2329;
+        border-radius: 16px;
+        padding: 24px;
+        color: #eaecef;
+        font-family: 'Inter', sans-serif;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .crypto-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .crypto-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        color: #eaecef;
+    }
+
+    .crypto-header a {
+        color: #707a8a;
+        text-decoration: none;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+
+    .crypto-header a:hover {
+        color: #f0b90b;
+    }
+
+    .crypto-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .crypto-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #2b3139;
+        transition: background-color 0.2s;
+    }
+
+    .crypto-item:last-child {
+        border-bottom: none;
+    }
+
+    .crypto-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .crypto-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .crypto-name-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .crypto-symbol {
+        font-size: 16px;
+        font-weight: 500;
+        color: #eaecef;
+    }
+
+    .crypto-name {
+        font-size: 12px;
+        color: #848e9c;
+    }
+
+    .crypto-price-group {
+        text-align: right;
+    }
+
+    .crypto-price {
+        font-size: 16px;
+        font-weight: 500;
+        color: #eaecef;
+        display: block;
+    }
+
+    .crypto-change {
+        font-size: 14px;
+        font-weight: 400;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .text-green {
+        color: #0ecb81;
+    }
+
+    .text-red {
+        color: #f6465d;
+    }
+
+    @media (max-width: 768px) {
+        .crypto-card {
+            padding: 16px;
+        }
+
+        .crypto-item {
+            padding: 10px 0;
+        }
+    }
+</style>
+
+<div class="crypto-card">
+    <div class="crypto-header">
+        <h2>Popular Cryptocurrencies</h2>
+        <a href="#" onclick="return false;">
+            View All 350+ Coins
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6" />
+            </svg>
+        </a>
+    </div>
+
+    <div class="crypto-list" id="cryptoList">
+        <!-- Loading State -->
+        <div style="text-align: center; padding: 20px; color: #848e9c;">
+            Loading prices...
+        </div>
+    </div>
+</div>
+
+<script>
+    const COINS = [
+        { symbol: 'BTCUSDT', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+        { symbol: 'ETHUSDT', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+        { symbol: 'BNBUSDT', name: 'BNB', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
+        { symbol: 'XRPUSDT', name: 'XRP', icon: 'https://cryptologos.cc/logos/xrp-xrp-logo.png' },
+        { symbol: 'SOLUSDT', name: 'Solana', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
+        { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png' }
+    ];
+
+    function formatPrice(price) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(price);
+    }
+
+    function formatChange(change) {
+        const val = parseFloat(change);
+        const sign = val >= 0 ? '+' : '';
+        return `${sign}${val.toFixed(2)}%`;
+    }
+
+    async function fetchCryptoPrices() {
+        try {
+            // Construct symbols query param
+            const symbols = JSON.stringify(COINS.map(c => c.symbol));
+            const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${symbols}`);
+            const data = await response.json();
+
+            const listContainer = document.getElementById('cryptoList');
+            listContainer.innerHTML = '';
+
+            // Map data to preserve order of COINS array
+            COINS.forEach(coin => {
+                const ticker = data.find(d => d.symbol === coin.symbol);
+                if (ticker) {
+                    const price = parseFloat(ticker.lastPrice);
+                    const change = parseFloat(ticker.priceChangePercent);
+                    const isPositive = change >= 0;
+
+                    const itemHtml = `
+                        <div class="crypto-item">
+                            <div class="crypto-info">
+                                <img src="${coin.icon}" alt="${coin.name}" class="crypto-icon">
+                                <div class="crypto-name-group">
+                                    <span class="crypto-symbol">${coin.symbol.replace('USDT', '')}</span>
+                                    <span class="crypto-name">${coin.name}</span>
+                                </div>
+                            </div>
+                            <div class="crypto-price-group">
+                                <span class="crypto-price">${formatPrice(price)}</span>
+                                <span class="crypto-change ${isPositive ? 'text-green' : 'text-red'}">
+                                    ${formatChange(change)}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.insertAdjacentHTML('beforeend', itemHtml);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching crypto prices:', error);
+        }
+    }
+
+    // Initial fetch
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchCryptoPrices();
+        // Refresh every 5 seconds
+        setInterval(fetchCryptoPrices, 5000);
+    });
+</script>

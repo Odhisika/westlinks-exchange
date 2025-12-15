@@ -19,6 +19,7 @@ urlpatterns = [
     path('buy-crypto', TemplateView.as_view(template_name='home/buyhom.html')),
     path('sell-crypto', TemplateView.as_view(template_name='home/sellhome.html')),
     path('about', TemplateView.as_view(template_name='home/aboutUs.html')),
+    path('support', TemplateView.as_view(template_name='support.html')),
     
     # Actual transaction pages (should require authentication)
     path('buy', ProtectedTemplateView.as_view(template_name='buy.html')),

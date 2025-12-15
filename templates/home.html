@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}CoinVibe Pay - P2P Crypto Trading Platform{% endblock %}
+{% block title %}WestLinks - P2P Crypto Trading Platform{% endblock %}
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
@@ -198,122 +198,16 @@
   </div>
 </section>
 
-<!-- P2P Trading Table -->
+<!-- Crypto Prices Section -->
 <section class="trading-section">
   <div class="cvp-container">
     <div class="section-header">
-      <h2>P2P Trading Market</h2>
-      <p>Trade directly with competitive rates</p>
+      <h2>Market Trends</h2>
+      <p>Live prices from the global crypto market</p>
     </div>
 
-    <div class="trading-table-wrapper">
-      <table class="p2p-table">
-        <thead>
-          <tr>
-            <th>Asset</th>
-            <th>Price (GHS)</th>
-            <th>Available</th>
-            <th>Limits</th>
-            <th>Payment Methods</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="table-row-hover">
-            <td>
-              <div class="asset-cell">
-                <div class="asset-icon"
-                  style="background: linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));">
-                  <span>₮</span>
-                </div>
-                <div>
-                  <div class="asset-name">USDT</div>
-                  <div class="asset-network">TRC20 / ERC20</div>
-                </div>
-              </div>
-            </td>
-            <td>
-              <div class="price-cell">
-                <div class="price-value" id="p2pBuyPrice">₵--</div>
-                <div class="price-label">Buy Rate</div>
-              </div>
-            </td>
-            <td>
-              <div class="available-cell">
-                <span class="badge badge-success">Available</span>
-              </div>
-            </td>
-            <td>
-              <div class="limit-cell">₵50 - ₵50,000</div>
-            </td>
-            <td>
-              <div class="payment-methods">
-                <span class="payment-badge">
-                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
-                  MTN
-                </span>
-                <span class="payment-badge">
-                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
-                  Vodafone
-                </span>
-                <span class="payment-badge">
-                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
-                  AirtelTigo
-                </span>
-              </div>
-            </td>
-            <td>
-              <a href="/buy" class="btn btn-primary btn-sm">
-                <i data-lucide="arrow-down-circle" style="width: 16px; height: 16px;"></i>
-                Buy
-              </a>
-            </td>
-          </tr>
-
-          <tr class="table-row-hover">
-            <td>
-              <div class="asset-cell">
-                <div class="asset-icon"
-                  style="background: linear-gradient(135deg, var(--highlight-green), var(--highlight-cyan));">
-                  <span>₮</span>
-                </div>
-                <div>
-                  <div class="asset-name">USDT</div>
-                  <div class="asset-network">TRC20 / ERC20</div>
-                </div>
-              </div>
-            </td>
-            <td>
-              <div class="price-cell">
-                <div class="price-value" id="p2pSellPrice">₵--</div>
-                <div class="price-label">Sell Rate</div>
-              </div>
-            </td>
-            <td>
-              <div class="available-cell">
-                <span class="badge badge-success">Available</span>
-              </div>
-            </td>
-            <td>
-              <div class="limit-cell">10 - 10,000 USDT</div>
-            </td>
-            <td>
-              <div class="payment-methods">
-                <span class="payment-badge">
-                  <i data-lucide="smartphone" style="width: 14px; height: 14px;"></i>
-                  Mobile Money
-                </span>
-              </div>
-            </td>
-            <td>
-              <a href="/sell" class="btn btn-success btn-sm">
-                <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i>
-                Sell
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="trading-table-wrapper" style="max-width: 600px; margin: 0 auto;">
+      {% include 'cryptoprices.html' %}
     </div>
   </div>
 </section>
@@ -463,12 +357,10 @@
         if (s.buy_rate) {
           const rate = Number(s.buy_rate).toFixed(2);
           document.getElementById('heroBuyRate').textContent = `₵${rate}`;
-          document.getElementById('p2pBuyPrice').textContent = `₵${rate}`;
         }
         if (s.sell_rate) {
           const rate = Number(s.sell_rate).toFixed(2);
           document.getElementById('heroSellRate').textContent = `₵${rate}`;
-          document.getElementById('p2pSellPrice').textContent = `₵${rate}`;
         }
         if (s.usdt_wallet_address) {
           document.getElementById('heroWallet').textContent = s.usdt_wallet_address;

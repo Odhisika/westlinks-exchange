@@ -1,12 +1,19 @@
 from django.views import View
-from django.views.generic import TemplateView
-from django.shortcuts import render
+from django.views.generic import TemplateView, FormView
+from django.urls import reverse_lazy
+from django.shortcuts import render, redirect
 from django.conf import settings
 import requests
 from api.models import BuyOrder, Transaction, Vendor
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib import messages
+from .forms import VendorPasswordResetForm, VendorSetPasswordForm
+from .tokens import vendor_token_generator
+
 
 @method_decorator(never_cache, name='dispatch')
 class ProtectedTemplateView(TemplateView):
@@ -21,6 +28,80 @@ class ProtectedTemplateView(TemplateView):
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
         return response
+
+class VendorPasswordResetView(FormView):
+    template_name = 'registration/password_reset_form.html'
+    form_class = VendorPasswordResetForm
+    success_url = reverse_lazy('password_reset_done')
+
+    def form_valid(self, form):
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': vendor_token_generator,
+            'from_email': None,
+            'email_template_name': 'registration/password_reset_email.txt',
+            'html_email_template_name': 'registration/password_reset_email.html',
+            'subject_template_name': 'registration/password_reset_subject.txt',
+            'request': self.request,
+        }
+        form.save(**opts)
+        return super().form_valid(form)
+
+class VendorPasswordResetDoneView(TemplateView):
+    template_name = 'registration/password_reset_done.html'
+
+class VendorPasswordResetConfirmView(FormView):
+    template_name = 'registration/password_reset_confirm.html'
+    form_class = VendorSetPasswordForm
+    success_url = reverse_lazy('password_reset_complete')
+
+    def dispatch(self, *args, **kwargs):
+        assert 'uidb64' in kwargs and 'token' in kwargs
+
+        self.validlink = False
+        self.vendor = self.get_user(kwargs['uidb64'])
+
+        if self.vendor is not None:
+            token = kwargs['token']
+            if vendor_token_generator.check_token(self.vendor, token):
+                self.validlink = True
+                return super().dispatch(*args, **kwargs)
+
+        # Display the "password reset unsuccessful" page.
+        return self.render_to_response(self.get_context_data())
+
+    def get_user(self, uidb64):
+        try:
+            # urlsafe_base64_decode() decodes to bytestring
+            uid = urlsafe_base64_decode(uidb64).decode()
+            vendor = Vendor.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, Vendor.DoesNotExist):
+            vendor = None
+        return vendor
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['vendor'] = self.vendor
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.validlink:
+            context['validlink'] = True
+        else:
+            context.update({
+                'form': None,
+                'title': 'Password reset unsuccessful',
+                'validlink': False,
+            })
+        return context
+
+class VendorPasswordResetCompleteView(TemplateView):
+    template_name = 'registration/password_reset_complete.html'
 
 class PaystackCallbackView(View):
     def get(self, request):

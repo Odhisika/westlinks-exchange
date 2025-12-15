@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Login - CoinVibe Pay{% endblock %}
+{% block title %}Login - WestLinks Exchange{% endblock %}
 {% block content %}
 <section class="cvp-container"
   style="margin-top: 4rem; margin-bottom: 4rem; min-height: 60vh; display: flex; align-items: center; justify-content: center;">
@@ -16,11 +16,15 @@
       </div>
 
       <div style="position: relative;">
-        <label>Password</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <label style="margin-bottom: 0;">Password</label>
+          <a href="{% url 'password_reset' %}" class="text-cyan"
+            style="font-size: 0.875rem; text-decoration: none;">Forgot Password?</a>
+        </div>
         <input id="loginPassword" type="password" class="field" placeholder="Enter your password" required
           style="padding-right: 44px;" />
         <button type="button" onclick="togglePassword('loginPassword')"
-          style="position: absolute; right: 12px; top: 42px; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.3s;">
+          style="position: absolute; right: 12px; top: 34px; background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.3s;">
           <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
         </button>
       </div>
