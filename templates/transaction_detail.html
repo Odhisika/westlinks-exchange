@@ -1,0 +1,308 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Details - WestLinks Exchange</title>
+    <link rel="stylesheet" href="{% static 'css/modern_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Authentication Check -->
+    <script>
+        (function () {
+            const token = localStorage.getItem('coinvibe_token');
+            if (!token || token === 'null' || token === 'undefined' || token === '') {
+                window.location.href = '/login?next=' + window.location.pathname;
+            }
+        })();
+    </script>
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/" class="cvp-brand">
+                <img src="{% static 'images/logo.jpg' %}" alt="WestLinks Exchange" style="height: 36px; width: auto;">
+                <span style="margin-left: 0.75rem;">WestLinks Exchange</span>
+            </a>
+
+            <!-- Mobile Hamburger Menu Button -->
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
+
+            <!-- Desktop Navigation -->
+            <nav class="cvp-nav">
+                <a href="/dashboard" class="cvp-link">Dashboard</a>
+                <a href="/profile" class="cvp-link">Profile</a>
+                <div id="dashUserMenu" style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+                    <div id="dashAvatar"
+                        style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);background:linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+                        U</div>
+                    <span id="dashUserName" class="text-primary" style="font-weight:600;"></span>
+                    <button onclick="logout()" class="cvp-link"
+                        style="color:#ef4444; background:none; border:none; cursor:pointer;">Logout</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Main Menu</h3>
+                    <a href="/dashboard" class="sidebar-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="/buy" class="sidebar-link">
+                        <i data-lucide="arrow-down-circle"></i>
+                        <span>Buy Crypto</span>
+                    </a>
+                    <a href="/sell" class="sidebar-link">
+                        <i data-lucide="arrow-up-circle"></i>
+                        <span>Sell Crypto</span>
+                    </a>
+                    <a href="/transactions" class="sidebar-link active">
+                        <i data-lucide="receipt"></i>
+                        <span>Transactions</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Settings</h3>
+                    <a href="/profile" class="sidebar-link">
+                        <i data-lucide="user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="sidebar-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="page-header" style="margin-bottom: var(--spacing-lg);">
+                <div>
+                    <a href="/transactions" class="btn btn-secondary"
+                        style="margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        Back to Transactions
+                    </a>
+                    <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                        Transaction Details</h1>
+                    <p style="color: var(--text-secondary);" id="txIdDisplay">Loading...</p>
+                </div>
+            </div>
+
+            <div id="txContent" class="dashboard-card" style="max-width: 800px; margin: 0 auto;">
+                <div class="dashboard-card-body" style="display: flex; justify-content: center; padding: 3rem;">
+                    <div style="text-align: center;">
+                        <i data-lucide="loader" class="animate-spin"
+                            style="width: 48px; height: 48px; color: var(--highlight-cyan);"></i>
+                        <p style="margin-top: 1rem; color: var(--text-secondary);">Loading transaction details...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+        const currentUser = localStorage.getItem('coinvibe_user') ? JSON.parse(localStorage.getItem('coinvibe_user')) : null;
+        const tokenRaw = localStorage.getItem('coinvibe_token');
+        const authToken = tokenRaw && tokenRaw !== 'null' && tokenRaw !== 'undefined' && tokenRaw !== '' ? tokenRaw : null;
+
+        if (!authToken || !currentUser) {
+            window.location.href = '/login';
+        }
+
+        function initHeader() {
+            const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ?
+                (currentUser.name || currentUser.username || currentUser.full_name) : '';
+            document.getElementById('dashUserName').textContent = name;
+            document.getElementById('dashAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
+        }
+
+        function logout() {
+            localStorage.removeItem('coinvibe_token');
+            localStorage.removeItem('coinvibe_user');
+            window.location.href = '/';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('dashboardSidebar').classList.toggle('open');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+                backdrop.classList.toggle('visible');
+            }
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                pending: 'badge-warning',
+                paid: 'badge-info',
+                sent: 'badge-primary',
+                confirmed: 'badge-success',
+                completed: 'badge-success',
+                failed: 'badge-danger',
+                processing: 'badge-info'
+            };
+            return badges[status] || 'badge-secondary';
+        }
+
+        async function loadTransactionDetails() {
+            // Get ID from URL path: /transactions/<id>
+            const pathParts = window.location.pathname.split('/');
+            const txId = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2]; // Handle trailing slash
+
+            document.getElementById('txIdDisplay').textContent = `ID: ${txId}`;
+
+            try {
+                const res = await fetch(`${API_URL}/vendors/me/transactions/${txId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (res.status === 404) {
+                    document.getElementById('txContent').innerHTML = `
+                        <div class="dashboard-card-body" style="text-align: center; padding: 3rem;">
+                            <i data-lucide="alert-circle" style="width: 48px; height: 48px; color: #ef4444; margin-bottom: 1rem;"></i>
+                            <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Transaction Not Found</h3>
+                            <p class="text-secondary">The transaction with ID ${txId} could not be found.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Failed to fetch transaction');
+
+                const data = await res.json();
+                const t = data.transaction;
+
+                renderTransaction(t);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('txContent').innerHTML = `
+                    <div class="dashboard-card-body" style="text-align: center; padding: 3rem;">
+                        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: #ef4444; margin-bottom: 1rem;"></i>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Error</h3>
+                        <p class="text-secondary">Failed to load transaction details. Please try again later.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function renderTransaction(t) {
+            const isBuy = t.type === 'buy';
+            const amountDisplay = t.fiat_amount ? `₵${Number(t.fiat_amount).toFixed(2)}` : `${t.crypto_amount} ${t.crypto_symbol || 'USDT'}`;
+
+            let detailsHtml = `
+                <div class="dashboard-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 class="dashboard-card-title" style="font-size: 1.25rem;">${isBuy ? 'Buy Order' : 'Sell Order'}</h2>
+                        <p class="text-secondary" style="font-size: 0.875rem;">${new Date(t.created_at).toLocaleString()}</p>
+                    </div>
+                    <span class="badge ${getStatusBadge(t.status)}" style="font-size: 1rem; padding: 0.5rem 1rem;">${t.status.toUpperCase()}</span>
+                </div>
+                <div class="dashboard-card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                        
+                        <!-- Amount Section -->
+                        <div class="glass-card" style="padding: 1.5rem;">
+                            <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem;">Amount Details</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Fiat Amount</span>
+                                    <span class="font-weight-600">₵${Number(t.fiat_amount).toFixed(2)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Crypto Amount</span>
+                                    <span class="font-weight-600">${Number(t.crypto_amount).toFixed(4)} ${t.crypto_symbol || 'USDT'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Exchange Rate</span>
+                                    <span class="font-mono">1 USD = ₵${Number(t.exchange_rate).toFixed(2)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Service Fee</span>
+                                    <span class="text-secondary">₵${Number(t.coinvibe_fee).toFixed(2)}</span>
+                                </div>
+                                ${t.network_fee ? `
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Network Fee</span>
+                                    <span class="text-secondary">₵${Number(t.network_fee).toFixed(2)}</span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Payment & Delivery -->
+                        <div class="glass-card" style="padding: 1.5rem;">
+                            <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem;">Transaction Info</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div>
+                                    <span style="display: block; font-size: 0.875rem; color: var(--text-secondary);">Payment ID</span>
+                                    <span class="font-mono" style="word-break: break-all;">${t.payment_id}</span>
+                                </div>
+                                <div>
+                                    <span style="display: block; font-size: 0.875rem; color: var(--text-secondary);">Network</span>
+                                    <span>${t.network || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span style="display: block; font-size: 0.875rem; color: var(--text-secondary);">Wallet Address</span>
+                                    <span class="font-mono" style="font-size: 0.875rem; word-break: break-all;">${t.wallet_address || 'N/A'}</span>
+                                </div>
+                                ${t.crypto_tx_hash ? `
+                                <div>
+                                    <span style="display: block; font-size: 0.875rem; color: var(--text-secondary);">Transaction Hash</span>
+                                    <a href="#" class="font-mono text-primary" style="font-size: 0.875rem; word-break: break-all;">${t.crypto_tx_hash}</a>
+                                </div>` : ''}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    ${t.delivery_status ? `
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Delivery Status</h3>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="badge ${getStatusBadge(t.delivery_status)}">${t.delivery_status.toUpperCase()}</span>
+                            <span class="text-secondary">
+                                ${t.delivery_status === 'pending' ? 'Waiting for payment confirmation' :
+                        t.delivery_status === 'processing' ? 'Processing your crypto transfer' :
+                            t.delivery_status === 'sent' ? 'Crypto sent to your wallet' :
+                                t.delivery_status === 'completed' ? 'Transaction completed successfully' : ''}
+                            </span>
+                        </div>
+                    </div>` : ''}
+                </div>
+            `;
+
+            document.getElementById('txContent').innerHTML = detailsHtml;
+            lucide.createIcons();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initHeader();
+            loadTransactionDetails();
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        });
+
+        // Close sidebar when clicking backdrop
+        document.getElementById('sidebarBackdrop').addEventListener('click', toggleSidebar);
+    </script>
+</body>
+
+</html>

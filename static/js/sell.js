@@ -167,7 +167,12 @@ async function confirmSell() {
             })
         });
         const data = await res.json();
-        if (data.success) { showToast(`Sell order created: ${data.payment_id}`); window.location.href = '/dashboard'; }
+        if (res.ok && (data.success || data.payment_id || data.id)) {
+            const pid = data.payment_id || data.id;
+            showToast(`Sell order created: ${pid}`);
+            window.location.href = `/sell-success?id=${pid}`;
+            return;
+        }
         else { showToast(data.detail || 'Failed to create sell order'); }
     } catch (err) {
         showToast('Network error, try again');

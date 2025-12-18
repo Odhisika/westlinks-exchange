@@ -5,6 +5,7 @@ from .vendor_views import (
     VendorMeView,
     VendorPasswordView,
     VendorTransactionsView,
+    VendorTransactionDetailView,
     VendorStatsView,
 )
 
@@ -14,5 +15,6 @@ urlpatterns = [
     path('vendors/me', VendorMeView.as_view()),
     path('vendors/me/password', VendorPasswordView.as_view()),
     path('vendors/me/transactions', VendorTransactionsView.as_view()),
+    path('vendors/me/transactions/<str:payment_id>', VendorTransactionDetailView.as_view()),
     path('vendors/me/stats', VendorStatsView.as_view()),
 ]

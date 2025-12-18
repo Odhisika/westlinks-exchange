@@ -268,20 +268,40 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-function toggleAvatarPicker() {
-    document.getElementById("avatarPicker").classList.toggle("hidden");
+function generateInitials(name) {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function selectAvatar(img) {
+function getColorFromName(name) {
+    const colors = [
+        "#0ea5e9", // sky
+        "#6366f1", // indigo
+        "#8b5cf6", // violet
+        "#ec4899", // pink
+        "#f59e0b", // amber
+        "#10b981", // emerald
+        "#14b8a6", // teal
+        "#ef4444", // red
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function renderInitialAvatar(name) {
     const avatar = document.getElementById("profileAvatarLarge");
-    avatar.src = img.src;
+    if (!avatar) return;
 
-    // Visual selection feedback
-    document.querySelectorAll("#avatarPicker img").forEach(i => {
-        i.classList.remove("ring-4", "ring-cyan-400");
-    });
-    img.classList.add("ring-4", "ring-cyan-400");
+    const initials = generateInitials(name);
+    const color = getColorFromName(name);
 
-    // OPTIONAL: save to backend later
-    // saveAvatar(img.src);
+    avatar.textContent = initials;
+    avatar.style.backgroundColor = color;
 }

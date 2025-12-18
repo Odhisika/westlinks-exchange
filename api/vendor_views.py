@@ -132,6 +132,42 @@ class VendorTransactionsView(APIView):
             }
         })
 
+class VendorTransactionDetailView(APIView):
+    def get(self, request, payment_id):
+        v = get_vendor(request)
+        if not v:
+            return Response({'detail':'unauthorized'}, status=401)
+        
+        t = Transaction.objects.filter(payment_id=payment_id).filter(Q(vendor=v) | Q(customer_email=v.email)).first()
+        
+        if not t:
+            return Response({'detail':'not_found'}, status=404)
+            
+        delivery_status = None
+        if t.type == 'buy':
+            b = BuyOrder.objects.filter(order_id=t.payment_id).first()
+            if b:
+                delivery_status = b.delivery_status
+        
+        data = {
+            'payment_id': t.payment_id,
+            'type': t.type,
+            'crypto_amount': t.crypto_amount,
+            'crypto_symbol': t.crypto_symbol,
+            'fiat_amount': t.fiat_amount,
+            'exchange_rate': t.exchange_rate,
+            'coinvibe_fee': t.coinvibe_fee,
+            'network_fee': t.network_fee,
+            'network': t.network,
+            'wallet_address': t.wallet_address,
+            'crypto_tx_hash': t.crypto_tx_hash,
+            'status': t.status,
+            'delivery_status': delivery_status,
+            'created_at': t.created_at.isoformat(),
+        }
+        
+        return Response({'success': True, 'transaction': data})
+
 class VendorStatsView(APIView):
     def get(self, request):
         v = get_vendor(request)

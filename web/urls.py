@@ -24,11 +24,13 @@ urlpatterns = [
     # Actual transaction pages (should require authentication)
     path('buy', ProtectedTemplateView.as_view(template_name='buy.html')),
     path('sell', ProtectedTemplateView.as_view(template_name='sell.html')),
+    path('sell-success', ProtectedTemplateView.as_view(template_name='sellsuccess.html')),
     path('exchange', ExchangeView.as_view()),
     path('exchange/history', ProtectedTemplateView.as_view(template_name='exchange/exchangeHistory.html')),
     path('dashboard', ProtectedTemplateView.as_view(template_name='dashboard.html')),
     path('profile', ProtectedTemplateView.as_view(template_name='profile.html')),
     path('transactions', ProtectedTemplateView.as_view(template_name='transactions.html')),
+    path('transactions/<str:tx_id>', ProtectedTemplateView.as_view(template_name='transaction_detail.html')),
     path('paystack/callback', PaystackCallbackView.as_view()),
     re_path(r'^(?P<template>[^/]+\.html)$', AnyTemplateView.as_view()),
 ]
