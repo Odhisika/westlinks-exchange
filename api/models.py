@@ -110,6 +110,7 @@ class BuyOrder(models.Model):
     
     # Payment Details
     paystack_reference = models.CharField(max_length=255, blank=True, null=True)  # NEW
+    payment_reference = models.CharField(max_length=255, blank=True, null=True)   # NEW - For manual payments
     momo_number = models.CharField(max_length=50, blank=True, null=True)
     momo_provider = models.CharField(max_length=50, blank=True, null=True)
     
@@ -159,6 +160,11 @@ class ExchangePaymentSettings(models.Model):
     ghs_momo_name = models.CharField(max_length=100, blank=True, default='')
     ghs_momo_network = models.CharField(max_length=20, blank=True, default='MTN')  # MTN, Vodafone, AirtelTigo
     
+    # Ghana Cedis (GHS) - Bank Transfer
+    ghs_bank_name = models.CharField(max_length=100, blank=True, default='')
+    ghs_account_number = models.CharField(max_length=50, blank=True, default='')
+    ghs_account_name = models.CharField(max_length=100, blank=True, default='')
+    
     last_updated = models.DateTimeField(default=timezone.now)
     
     class Meta:
@@ -196,3 +202,61 @@ class CurrencyExchange(models.Model):
     
     # Admin notes
     admin_notes = models.TextField(blank=True, null=True)
+
+
+class PaymentMethod(models.Model):
+    """User's saved payment methods for receiving crypto sale proceeds"""
+    PAYMENT_TYPE_CHOICES = [
+        ('bank', 'Bank Transfer'),
+        ('mobilemoney', 'Mobile Money'),
+    ]
+    
+    MOBILE_NETWORK_CHOICES = [
+        ('mtn', 'MTN Mobile Money'),
+        ('vodafone', 'Vodafone Cash'),
+        ('airteltigo', 'AirtelTigo Money'),
+    ]
+    
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='payment_methods')
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES)
+    
+    # Mobile Money fields
+    mobile_network = models.CharField(max_length=20, choices=MOBILE_NETWORK_CHOICES, blank=True, null=True)
+    mobile_number = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Bank Transfer fields
+    bank_name = models.CharField(max_length=100, blank=True, null=True)
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    account_name = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Metadata
+    is_default = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    nickname = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., 'My MTN Account'")
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-is_default', '-created_at']
+        
+    def save(self, *args, **kwargs):
+        # Ensure only one default payment method per vendor
+        if self.is_default:
+            PaymentMethod.objects.filter(vendor=self.vendor, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+
+class EmailVerification(models.Model):
+    """Email verification codes for payment method changes"""
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='email_verifications')
+    code = models.CharField(max_length=6)  # 6-digit code
+    purpose = models.CharField(max_length=50, default='payment_method')  # Future: password_reset, email_change, etc.
+    metadata = models.JSONField(default=dict, blank=True)  # Store pending payment method data
+    
+    is_used = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at

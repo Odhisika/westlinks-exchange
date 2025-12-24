@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
 </head>
 
 <body>
@@ -103,81 +104,179 @@
 
     <main class="dashboard-main">
       <div class="dashboard-content">
-        <h2 id="buyPageTitle" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Buy Crypto</h2>
 
-        <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem;">
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+        <!-- Step 1: Calculator & Order Creation -->
+        <div id="buyStep1">
+          <h2 id="buyPageTitle" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Buy Crypto</h2>
+
+          <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label>I Pay (GHS)</label>
+                <input id="buyAmountGHS" type="number" class="field" placeholder="0.00"
+                  oninput="updateBuyCalculator()" />
+              </div>
+              <div>
+                <label id="buyGetLabel">Value in USD</label>
+                <input id="buyAmountUSDT" type="text" class="field" readonly placeholder="0.00" />
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <span class="text-secondary">Rate</span>
+              <span class="text-primary" id="buyRateLabel">--</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <span class="text-secondary">Service Fee (<span id="buyFeePercent">1.5</span>%)</span>
+              <span class="text-primary" id="buyServiceFee">--</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <span class="text-secondary">Network Fee</span>
+              <span class="text-primary" id="buyNetworkFee">--</span>
+            </div>
+            <div
+              style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+              <span class="text-primary">Total to Pay</span>
+              <span class="text-yellow" id="buyTotal">₵0.00</span>
+            </div>
+          </div>
+
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 1rem;">Wallet Details</h3>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
             <div>
-              <label>I Pay (GHS)</label>
-              <input id="buyAmountGHS" type="number" class="field" placeholder="0.00" oninput="updateBuyCalculator()" />
+              <label>Asset</label>
+              <select id="buyAssetSelect" class="field">
+                <option value="USDT">USDT</option>
+                <option value="TRX">TRON (TRX)</option>
+                <option value="LTC">Litecoin (LTC)</option>
+              </select>
             </div>
             <div>
-              <label id="buyGetLabel">Value in USD</label>
-              <input id="buyAmountUSDT" type="text" class="field" readonly placeholder="0.00" />
+              <label>Network</label>
+              <select id="buyNetworkSelect" class="field"></select>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
-            <span class="text-secondary">Rate</span>
-            <span class="text-primary" id="buyRateLabel">--</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
-            <span class="text-secondary">Service Fee (<span id="buyFeePercent">1.5</span>%)</span>
-            <span class="text-primary" id="buyServiceFee">--</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
-            <span class="text-secondary">Network Fee</span>
-            <span class="text-primary" id="buyNetworkFee">--</span>
-          </div>
-          <div
-            style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-            <span class="text-primary">Total to Pay</span>
-            <span class="text-yellow" id="buyTotal">₵0.00</span>
-          </div>
-        </div>
-
-        <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 1rem;">Wallet Details</h3>
-
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
           <div>
-            <label>Asset</label>
-            <select id="buyAssetSelect" class="field">
-              <option value="USDT">USDT</option>
-              <option value="TRX">TRON (TRX)</option>
-              <option value="LTC">Litecoin (LTC)</option>
-            </select>
+            <label>Your Wallet Address</label>
+            <input id="buyWalletAddress" type="text" class="field" placeholder="Enter wallet address" />
+            <div id="buyWalletError" style="display: none; color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+              Invalid address for selected network.</div>
+            <div class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">Estimated blockchain fee: <span
+                id="buyBlockchainFee" style="font-weight: 600;">--</span></div>
           </div>
-          <div>
-            <label>Network</label>
-            <select id="buyNetworkSelect" class="field"></select>
+
+          <div style="margin-top: 2rem;">
+            <button onclick="createBuyOrder()" class="btn btn-primary" style="width: 100%;">Proceed to Payment</button>
           </div>
         </div>
 
-        <div>
-          <label>Your Wallet Address</label>
-          <input id="buyWalletAddress" type="text" class="field" placeholder="Enter wallet address" />
-          <div id="buyWalletError" style="display: none; color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
-            Invalid address for selected network.</div>
-          <div class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">Estimated blockchain fee: <span
-              id="buyBlockchainFee" style="font-weight: 600;">--</span></div>
-        </div>
-
-        <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 1rem;">Payment</h3>
-
-        <div class="glass-card"
-          style="background: rgba(14, 203, 129, 0.1); border-color: rgba(14, 203, 129, 0.3); padding: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span class="text-secondary">Subtotal</span>
-            <span class="text-primary font-weight: 600;" id="psSubtotal">₵0.00</span>
+        <!-- Step 2: Payment Instructions -->
+        <div id="buyStep2" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <button onclick="showStep1()"
+              style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+              <i data-lucide="arrow-left"></i>
+            </button>
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Complete Payment</h2>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span class="text-secondary">Fee (1.5%)</span>
-            <span class="text-primary font-weight: 600;" id="psFee">₵0.00</span>
+
+          <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem; border-color: var(--highlight-yellow);">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+              <div style="font-size: 0.875rem; color: var(--text-secondary);">Amount to Pay</div>
+              <div id="payAmountDisplay" style="font-size: 2rem; font-weight: 800; color: var(--highlight-yellow);">
+                ₵0.00</div>
+              <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Order ID: <span
+                  id="payOrderId" style="font-family: monospace; color: var(--text-primary);">--</span></div>
+            </div>
+
+            <div
+              style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 4px; display: flex; margin-bottom: 1.5rem;">
+              <button onclick="togglePaymentMethod('momo')" id="btnMomo" class="btn"
+                style="flex: 1; background: var(--highlight-yellow); color: #000; border: none;">Mobile Money</button>
+              <button onclick="togglePaymentMethod('bank')" id="btnBank" class="btn"
+                style="flex: 1; background: transparent; color: var(--text-secondary); border: none;">Bank
+                Transfer</button>
+            </div>
+
+            <!-- Mobile Money Details -->
+            <div id="momoDetails">
+              <div style="display: grid; gap: 1rem;">
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">MoMo Number</span>
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span id="payMomoNumber" style="font-weight: 600; font-family: monospace;">--</span>
+                    <i data-lucide="copy" style="width: 14px; cursor: pointer;" onclick="copyText('payMomoNumber')"></i>
+                  </div>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">Account Name</span>
+                  <span id="payMomoName" style="font-weight: 600;">--</span>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">Network</span>
+                  <span id="payMomoNetwork" style="font-weight: 600;">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank Details -->
+            <div id="bankDetails" style="display: none;">
+              <div style="display: grid; gap: 1rem;">
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">Bank Name</span>
+                  <span id="payBankName" style="font-weight: 600;">--</span>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">Account Number</span>
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span id="payAccountNumber" style="font-weight: 600; font-family: monospace;">--</span>
+                    <i data-lucide="copy" style="width: 14px; cursor: pointer;"
+                      onclick="copyText('payAccountNumber')"></i>
+                  </div>
+                </div>
+                <div
+                  style="display: flex; justify-content: space-between; padding: 1rem; background: var(--bg-primary); border-radius: 8px;">
+                  <span class="text-secondary">Account Name</span>
+                  <span id="payAccountName" style="font-weight: 600;">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;">
+              <div style="display: flex; gap: 0.75rem;">
+                <i data-lucide="alert-triangle" style="color: #ef4444; width: 20px; height: 20px;"></i>
+                <div>
+                  <div style="font-weight: 600; color: #ef4444; margin-bottom: 0.25rem;">Important</div>
+                  <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Please use <span id="payRefCopy"
+                      style="font-weight: 700; color: var(--text-primary); font-family: monospace;">--</span> as your
+                    reference/description when making the payment.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div
-            style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-            <span class="text-primary">Total to Pay</span>
-            <span class="text-yellow" id="psTotal">₵0.00</span>
+
+          <div style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Confirm Payment</h3>
+
+            <div style="margin-bottom: 1rem;">
+              <label>Payment Reference / Transaction ID</label>
+              <input id="userPayRef" type="text" class="field"
+                placeholder="Enter the transaction ID from your payment" />
+            </div>
+
+            <button onclick="confirmBuyPayment()" class="btn btn-primary" style="width: 100%;">
+              I have sent the money
+            </button>
           </div>
         </div>
 
@@ -193,332 +292,10 @@
           </div>
         </div>
 
-        <div style="margin-top: 2rem;">
-          <button onclick="openPaystackModal()" class="btn btn-primary" style="width: 100%;">Proceed to Payment</button>
-        </div>
-
       </div>
     </main>
   </div>
-
-  <script>
-    const API_URL = window.location.origin + '/api';
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const brand = document.getElementById('cvpBrand');
-      const t = localStorage.getItem('coinvibe_token');
-      const loggedIn = !!(t && t !== 'null' && t !== 'undefined' && t !== '');
-      if (brand) brand.setAttribute('href', loggedIn ? '/dashboard' : '/');
-      if (window.lucide && lucide.createIcons) lucide.createIcons();
-      initHeader();
-    });
-
-    function initHeader() {
-      const currentUser = JSON.parse(localStorage.getItem('coinvibe_user') || '{}');
-      const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ? (currentUser.name || currentUser.username || currentUser.full_name) : '';
-
-      const userNameEl = document.getElementById('dashUserName');
-      if (userNameEl) userNameEl.textContent = name;
-
-      const avatarEl = document.getElementById('dashAvatar');
-      if (avatarEl) avatarEl.textContent = name ? name.charAt(0).toUpperCase() : 'U';
-    }
-
-    function logout() {
-      localStorage.removeItem('coinvibe_token');
-      localStorage.removeItem('coinvibe_user');
-      window.location.href = '/';
-    }
-
-    // Sidebar Logic
-    (function () {
-      const sidebar = document.getElementById('dashboardSidebar');
-      const toggleBtn = document.querySelector('.sidebar-toggle');
-      const mobileToggle = document.querySelector('.mobile-nav-toggle');
-      const body = document.body;
-
-      let backdrop = document.getElementById('sidebarBackdrop');
-      if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'sidebarBackdrop';
-        backdrop.className = 'sidebar-backdrop';
-        document.body.appendChild(backdrop);
-      }
-
-      function isMobileWidth() {
-        return window.innerWidth <= 1024;
-      }
-
-      function openSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.add('active');
-        backdrop.classList.add('visible');
-        body.style.overflow = 'hidden';
-      }
-
-      function closeSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.remove('active');
-        backdrop.classList.remove('visible');
-        body.style.overflow = '';
-      }
-
-      window.toggleSidebar = function () {
-        if (!sidebar) return;
-        if (sidebar.classList.contains('active')) closeSidebar();
-        else openSidebar();
-      }
-
-      if (toggleBtn) toggleBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        toggleSidebar();
-      });
-
-      if (mobileToggle) mobileToggle.addEventListener('click', function (e) {
-        e.stopPropagation();
-        toggleSidebar();
-      });
-
-      backdrop.addEventListener('click', closeSidebar);
-
-      window.addEventListener('resize', function () {
-        if (!isMobileWidth()) {
-          sidebar.classList.remove('open');
-        }
-      });
-    })();
-
-    function updateAddressPlaceholder() {
-      const addr = document.getElementById('buyWalletAddress');
-      const val = document.getElementById('buyNetworkSelect') ? document.getElementById('buyNetworkSelect').value : '';
-      if (!addr) return;
-      switch (val) {
-        case 'ERC20':
-        case 'BEP20':
-        case 'POLYGON':
-        case 'ARBITRUM':
-        case 'AVALANCHE':
-          addr.placeholder = '0x… (42-char hex address)';
-          break;
-        case 'TRC20':
-          addr.placeholder = 'Starts with T… (TRON address)';
-          break;
-        case 'SOLANA':
-          addr.placeholder = 'Solana base58';
-          break;
-        case 'LITECOIN':
-          addr.placeholder = 'Litecoin (ltc1… or L/M…)';
-          break;
-        default:
-          addr.placeholder = 'Enter wallet address';
-      }
-    }
-
-    function normalizeNetworkCode(s) {
-      s = String(s).toUpperCase();
-      if (s.includes('ERC')) return 'ERC20';
-      if (s.includes('TRC')) return 'TRC20';
-      if (s.includes('BEP')) return 'BEP20';
-      if (s.includes('SOL')) return 'SOLANA';
-      if (s.includes('AVA')) return 'AVALANCHE';
-      if (s.includes('POLY')) return 'POLYGON';
-      if (s.includes('ARBI')) return 'ARBITRUM';
-      if (s.includes('LTC')) return 'LITECOIN';
-      return s;
-    }
-
-    function networkLabelFromCode(code) {
-      const m = {
-        ERC20: 'Ethereum (ERC-20)',
-        TRC20: 'TRON (TRC-20)',
-        BEP20: 'Binance Smart Chain (BEP-20)',
-        SOLANA: 'Solana',
-        AVALANCHE: 'Avalanche',
-        POLYGON: 'Polygon',
-        ARBITRUM: 'Arbitrum',
-        LITECOIN: 'Litecoin'
-      };
-      return m[code] || code;
-    }
-
-    function filterNetworksForAsset(symbol, networks) {
-      symbol = String(symbol).toUpperCase();
-      if (symbol === 'USDT') {
-        const allowed = new Set(['ERC20', 'TRC20', 'BEP20', 'SOLANA', 'AVALANCHE', 'POLYGON', 'ARBITRUM']);
-        return networks.filter(n => allowed.has(String(n).toUpperCase()));
-      }
-      if (symbol === 'TRX') return ['TRC20'];
-      if (symbol === 'LTC') return ['LITECOIN'];
-      return networks;
-    }
-
-    let buyAssets = [];
-    let buySelectedAsset = null;
-
-    async function loadBuyAssets() {
-      try {
-        const res = await fetch(`${API_URL}/public/assets`);
-        const data = await res.json();
-        if (data.success) {
-          // Filter by buy_enabled
-          buyAssets = data.assets.filter(a => a.buy_enabled);
-
-          const sel = document.getElementById('buyAssetSelect');
-          sel.innerHTML = '';
-
-          // Group by symbol to show unique assets in the first dropdown
-          const uniqueSymbols = [...new Set(buyAssets.map(a => a.symbol))];
-
-          uniqueSymbols.forEach(s => {
-            const asset = buyAssets.find(a => a.symbol === s); // Get first occurrence for name
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.textContent = `${asset.asset_name} (${s})`;
-            sel.appendChild(opt);
-          });
-
-          if (uniqueSymbols.length > 0) {
-            // Trigger change to load networks for the first symbol
-            sel.value = uniqueSymbols[0];
-            updateNetworkDropdown();
-          }
-
-          sel.addEventListener('change', () => {
-            updateNetworkDropdown();
-          });
-        }
-      } catch (e) { console.error(e); }
-    }
-
-    function updateNetworkDropdown() {
-      const assetSel = document.getElementById('buyAssetSelect');
-      const networkSel = document.getElementById('buyNetworkSelect');
-      const selectedSymbol = assetSel.value;
-
-      networkSel.innerHTML = '';
-
-      // Find all assets matching the selected symbol
-      const availableAssets = buyAssets.filter(a => a.symbol === selectedSymbol);
-
-      availableAssets.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a.network; // Use network code as value
-        opt.textContent = (typeof networkLabelFromCode === 'function') ? networkLabelFromCode(a.network) : a.network;
-        networkSel.appendChild(opt);
-      });
-
-      // Select the first network by default and update the global selected asset
-      if (availableAssets.length > 0) {
-        networkSel.value = availableAssets[0].network;
-        buySelectedAsset = availableAssets[0];
-        updateBuyCalculator();
-        if (typeof updateAddressPlaceholder === 'function') updateAddressPlaceholder();
-      }
-
-      networkSel.onchange = function () {
-        const selectedNetwork = networkSel.value;
-        buySelectedAsset = availableAssets.find(a => a.network === selectedNetwork);
-        updateBuyCalculator();
-        if (typeof updateAddressPlaceholder === 'function') updateAddressPlaceholder();
-      };
-    }
-
-    function updateBuyCalculator() {
-      if (!buySelectedAsset) return;
-
-      const title = document.getElementById('buyPageTitle');
-      if (title) title.textContent = `Buy ${buySelectedAsset.symbol}`;
-      const getLabel = document.getElementById('buyGetLabel');
-      if (getLabel) getLabel.textContent = `Value in USD`;
-
-      const amountGhs = parseFloat(document.getElementById('buyAmountGHS').value) || 0;
-      const rate = buySelectedAsset.buy_rate || 0;
-      const feePercent = 1.5;
-
-      // GHS to USD conversion rate (adjust as needed)
-      const ghsToUsdRate = 15; // 1 USD = 15 GHS
-      const amountUsd = amountGhs / ghsToUsdRate;
-
-      const serviceFee = amountGhs * (feePercent / 100);
-      const networkFeeUsd = buySelectedAsset.network_fee_usd || 1;
-      const networkFeeGhs = networkFeeUsd * 15;
-
-      const totalGhs = amountGhs + serviceFee + networkFeeGhs;
-
-      const cryptoAmount = (rate > 0) ? (amountGhs / rate) : 0;
-
-      // Display USD value instead of crypto amount
-      const amountUsdtEl = document.getElementById('buyAmountUSDT');
-      if (amountUsdtEl) amountUsdtEl.value = `$${amountUsd.toFixed(2)}`;
-
-      document.getElementById('buyRateLabel').textContent = `₵${rate.toFixed(2)}/${buySelectedAsset.symbol}`;
-      document.getElementById('buyFeePercent').textContent = feePercent;
-      document.getElementById('buyServiceFee').textContent = `₵${serviceFee.toFixed(2)}`;
-      document.getElementById('buyNetworkFee').textContent = `₵${networkFeeGhs.toFixed(2)}`;
-      document.getElementById('buyTotal').textContent = `₵${totalGhs.toFixed(2)}`;
-
-      updatePaystackSummary(totalGhs);
-    }
-
-    function updatePaystackSummary(subtotal) {
-      if (!subtotal) subtotal = 0;
-      const paystackFee = subtotal * 0.015;
-      const total = subtotal + paystackFee;
-      document.getElementById('psSubtotal').textContent = `₵${subtotal.toFixed(2)}`;
-      document.getElementById('psFee').textContent = `₵${paystackFee.toFixed(2)}`;
-      document.getElementById('psTotal').textContent = `₵${total.toFixed(2)}`;
-    }
-
-
-    function showToast(msg) {
-      const el = document.getElementById('buyToast');
-      const m = document.getElementById('buyToastMsg');
-      m.textContent = msg;
-      el.style.display = 'block';
-      if (window.lucide && lucide.createIcons) lucide.createIcons();
-      setTimeout(() => { el.style.display = 'none'; }, 3000);
-    }
-
-    async function openPaystackModal() {
-      const t = localStorage.getItem('coinvibe_token');
-      const uRaw = localStorage.getItem('coinvibe_user');
-      const loggedIn = !!(t && t !== 'null' && t !== 'undefined' && t !== '');
-      if (!loggedIn || !uRaw) { window.location.href = '/login'; return; }
-      let u = null; try { u = JSON.parse(uRaw); } catch (_) { }
-      const amount = parseFloat(document.getElementById('buyAmountGHS').value) || 0;
-      const addr = document.getElementById('buyWalletAddress').value.trim();
-      if (!amount || amount <= 0) { showToast('Enter a valid GHS amount'); return; }
-      if (!addr) { showToast('Enter your wallet address'); return; }
-      if (!buySelectedAsset || !buySelectedAsset.id) { showToast('Please select an asset'); return; }
-      try {
-        showToast('Starting payment…');
-        const confirmRes = await fetch(`${API_URL}/buy/confirm`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
-          body: JSON.stringify({
-            asset_id: buySelectedAsset.id,
-            amount_ghs: amount,
-            recipient_address: addr,
-            vendor_email: (u && u.email) ? u.email : ''
-          })
-        });
-        const confirmData = await confirmRes.json();
-        if (!confirmRes.ok || !confirmData.success) { showToast(confirmData.detail || 'Failed to create order'); return; }
-        const order_id = confirmData.order_id;
-        const initRes = await fetch(`${API_URL}/buy/paystack/init`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id, email: (u && u.email) ? u.email : '' })
-        });
-        const initData = await initRes.json();
-        if (!initRes.ok || !initData.success) { showToast(initData.detail || 'Payment init failed'); return; }
-        window.location.href = initData.authorization_url;
-      } catch (e) {
-        showToast('Network error, try again');
-      }
-    }
-
-    loadBuyAssets();
-    updateBuyCalculator();
-  </script>
+  <script src="{% static 'js/buy.js' %}"></script>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from django.views.generic import TemplateView
 from .views import PaystackCallbackView, ProtectedTemplateView, ExchangeView
+from . import views
 
 class AnyTemplateView(TemplateView):
     def get_template_names(self):
@@ -29,8 +30,10 @@ urlpatterns = [
     path('exchange/history', ProtectedTemplateView.as_view(template_name='exchange/exchangeHistory.html')),
     path('dashboard', ProtectedTemplateView.as_view(template_name='dashboard.html')),
     path('profile', ProtectedTemplateView.as_view(template_name='profile.html')),
+    path('payment-methods', ProtectedTemplateView.as_view(template_name='paymentMethods.html')),
     path('transactions', ProtectedTemplateView.as_view(template_name='transactions.html')),
     path('transactions/<str:tx_id>', ProtectedTemplateView.as_view(template_name='transaction_detail.html')),
+    path('buy/success', views.BuyManualSuccessView.as_view()),
     path('paystack/callback', PaystackCallbackView.as_view()),
     re_path(r'^(?P<template>[^/]+\.html)$', AnyTemplateView.as_view()),
 ]

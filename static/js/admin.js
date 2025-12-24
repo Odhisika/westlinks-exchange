@@ -64,7 +64,7 @@ function switchTab(tabId) {
     });
 
     // Load data
-    if (tabId === 'overview') loadOverviewData();
+    if (tabId === 'overview') loadOverview();
     if (tabId === 'vendors') loadVendors();
     if (tabId === 'transactions') loadTransactions();
     if (tabId === 'orders') loadBuyOrders();
@@ -136,6 +136,7 @@ async function loadVendors(page = 1) {
                     <td>
                         <button class="btn btn-secondary text-xs py-1 px-2" onclick="vendorAction(${v.id}, '${v.is_active ? 'deactivate' : 'activate'}')">${v.is_active ? 'Deactivate' : 'Activate'}</button>
                         <button class="btn btn-secondary text-xs py-1 px-2 ml-1" onclick="vendorAction(${v.id}, '${v.is_verified ? 'unverify' : 'verify'}')">${v.is_verified ? 'Unverify' : 'Verify'}</button>
+                        <button class="btn btn-secondary text-xs py-1 px-2 ml-1" style="color: #ef4444;" onclick="vendorAction(${v.id}, 'delete')" title="Delete Vendor">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -161,15 +162,28 @@ async function loadVendors(page = 1) {
 
 async function vendorAction(id, action) {
     const key = getAdminKeyOrAlert(); if (!key) return;
-    if (!confirm(`Confirm ${action} vendor #${id}?`)) return;
+
+    // Stronger confirmation for delete action
+    if (action === 'delete') {
+        if (!confirm(`⚠️ WARNING: This will permanently delete vendor #${id} and all associated data.\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?`)) return;
+    } else {
+        if (!confirm(`Confirm ${action} vendor #${id}?`)) return;
+    }
+
     const res = await fetch(`${API_URL}/admin/vendors/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         body: JSON.stringify({ action })
     });
     const data = await res.json();
-    if (data.success) loadVendors();
-    else alert(data.detail);
+    if (data.success) {
+        if (action === 'delete') {
+            alert('Vendor deleted successfully');
+        }
+        loadVendors();
+    } else {
+        alert(data.detail);
+    }
 }
 
 async function loadTransactions(page = 1) {
@@ -804,190 +818,6 @@ async function deleteAsset(assetId) {
 function closeAssetModal() {
     document.getElementById('assetModal').style.display = 'none';
     currentEditingAssetId = null;
-}
-
-
-// Buy Orders Management
-let currentUpdateOrderId = null;
-let currentBuyOrders = [];
-
-async function loadBuyOrders() {
-    const key = getAdminKeyOrAlert();
-    if (!key) return;
-    const paymentStatus = document.getElementById('filterPaymentStatus')?.value || '';
-    const deliveryStatus = document.getElementById('filterDeliveryStatus')?.value || '';
-    let url = `${API_URL}/admin/buy-orders`;
-    const params = [];
-    if (paymentStatus) params.push(`payment_status=${paymentStatus}`);
-    if (deliveryStatus) params.push(`delivery_status=${deliveryStatus}`);
-    if (params.length) url += '?' + params.join('&');
-    try {
-        const res = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${key}` }
-        });
-
-        if (!res.ok) {
-            throw new Error(`Server returned ${res.status}`);
-        }
-        const data = await res.json();
-        if (!data.success) {
-            document.getElementById('buyOrdersTableBody').innerHTML =
-                '<tr><td colspan="9" class="text-center text-danger">Failed to load orders</td></tr>';
-            return;
-        }
-        currentBuyOrders = data.orders || [];
-        renderBuyOrders(currentBuyOrders);
-    } catch (e) {
-        console.error("Error loading buy orders:", e);
-        document.getElementById('buyOrdersTableBody').innerHTML =
-            '<tr><td colspan="9" class="text-center text-danger">Network error (Check console for details)</td></tr>';
-    }
-}
-
-function renderBuyOrders(orders) {
-    const tbody = document.getElementById('buyOrdersTableBody');
-
-    if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-secondary">No orders found</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = orders.map(o => {
-        const paymentBadge = getPaymentStatusBadge(o.payment_status);
-        const deliveryBadge = getDeliveryStatusBadge(o.delivery_status);
-        const createdDate = new Date(o.created_at).toLocaleString();
-        const shortWallet = o.recipient_address ?
-            `${o.recipient_address.substring(0, 8)}...${o.recipient_address.substring(o.recipient_address.length - 6)}` :
-            'N/A';
-
-        return `
-            <tr>
-                <td>
-                    <div class="font-mono text-sm">${o.order_id}</div>
-                </td>
-                <td>
-                    <div class="font-semibold">${o.asset_symbol}</div>
-                    <div class="text-xs text-secondary">${o.network}</div>
-                </td>
-                <td>
-                    <div>${parseFloat(o.usdt_amount).toFixed(6)} ${o.asset_symbol}</div>
-                    <div class="text-xs text-secondary">₵${parseFloat(o.amount_ghs).toFixed(2)}</div>
-                </td>
-                <td class="font-semibold">₵${parseFloat(o.total_ghs).toFixed(2)}</td>
-                <td>
-                    <div class="font-mono text-xs" title="${o.recipient_address}">${shortWallet}</div>
-                    <button onclick="copyText('${o.recipient_address}')" class="btn-sm text-xs" 
-                            style="margin-top: 4px; padding: 2px 8px; font-size: 0.7rem;">
-                        Copy
-                    </button>
-                </td>
-                <td>
-                    <span class="badge ${paymentBadge.class}">${paymentBadge.text}</span>
-                    ${o.paid_at ? `<div class="text-xs text-secondary mt-1">${new Date(o.paid_at).toLocaleString()}</div>` : ''}
-                </td>
-                <td>
-                    <span class="badge ${deliveryBadge.class}">${deliveryBadge.text}</span>
-                    ${o.delivered_at ? `<div class="text-xs text-secondary mt-1">${new Date(o.delivered_at).toLocaleString()}</div>` : ''}
-                    ${o.tx_hash ? `<div class="font-mono text-xs mt-1" title="${o.tx_hash}">${o.tx_hash.substring(0, 10)}...</div>` : ''}
-                </td>
-                <td>
-                    <div class="text-sm">${createdDate}</div>
-                </td>
-                <td>
-                    ${o.payment_status === 'paid' ? `
-                        <button onclick="openUpdateOrderModal(${o.id})" 
-                                class="btn btn-sm btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
-                            ${o.delivery_status === 'pending' ? '📦 Mark Sent' :
-                    o.delivery_status === 'sent' ? '✅ Confirm' :
-                        '📝 Update'}
-                        </button>
-                    ` : '<span class="text-secondary text-sm">Awaiting Payment</span>'}
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function getPaymentStatusBadge(status) {
-    const badges = {
-        'pending': { text: 'Pending', class: 'badge-warning' },
-        'paid': { text: 'Paid', class: 'badge-success' },
-        'failed': { text: 'Failed', class: 'badge-danger' },
-        'refunded': { text: 'Refunded', class: 'badge-secondary' }
-    };
-    return badges[status] || { text: status, class: 'badge-secondary' };
-}
-
-function getDeliveryStatusBadge(status) {
-    const badges = {
-        'pending': { text: 'Not Sent', class: 'badge-warning' },
-        'sent': { text: 'Sent', class: 'badge-info' },
-        'confirmed': { text: 'Confirmed', class: 'badge-success' },
-        'failed': { text: 'Failed', class: 'badge-danger' }
-    };
-    return badges[status] || { text: status, class: 'badge-secondary' };
-}
-
-function openUpdateOrderModal(orderId) {
-    const order = currentBuyOrders.find(o => o.id === orderId);
-    if (!order) return;
-
-    currentUpdateOrderId = orderId;
-    document.getElementById('updateOrderModalTitle').textContent = `Update Order: ${order.order_id}`;
-    document.getElementById('updateOrderId').value = orderId;
-    document.getElementById('updateDeliveryStatus').value = order.delivery_status || 'pending';
-    document.getElementById('updateTxHash').value = order.tx_hash || '';
-    document.getElementById('updateAdminNotes').value = order.admin_notes || '';
-    document.getElementById('updateOrderModal').style.display = 'flex';
-}
-function closeUpdateOrderModal() {
-    document.getElementById('updateOrderModal').style.display = 'none';
-    currentUpdateOrderId = null;
-}
-async function saveOrderUpdate(e) {
-    e.preventDefault();
-    const key = getAdminKeyOrAlert();
-    if (!key) return;
-
-    const orderId = document.getElementById('updateOrderId').value;
-    const txHash = document.getElementById('updateTxHash').value.trim();
-    const deliveryStatus = document.getElementById('updateDeliveryStatus').value;
-    const adminNotes = document.getElementById('updateAdminNotes').value.trim();
-
-    try {
-        const res = await fetch(`${API_URL}/admin/buy-orders/${orderId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`
-            },
-            body: JSON.stringify({
-                tx_hash: txHash,
-                delivery_status: deliveryStatus,
-                admin_notes: adminNotes
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            alert('Order updated successfully');
-            closeUpdateOrderModal();
-            loadBuyOrders();
-        } else {
-            alert(data.detail || 'Failed to update order');
-        }
-    } catch (e) {
-        alert('Network error');
-    }
-}
-function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        // Optional: show a toast notification
-        alert('Copied to clipboard!');
-    }).catch(() => {
-        alert('Failed to copy');
-    });
 }
 
 

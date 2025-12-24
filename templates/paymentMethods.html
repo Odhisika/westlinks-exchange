@@ -1,0 +1,371 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Methods • WestLinks Exchange</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+    <script>
+        (function () {
+            const token = localStorage.getItem('coinvibe_token');
+            if (!token || token === 'null' || token === 'undefined' || token === '') {
+                window.location.href = '/login?next=/payment-methods';
+            }
+        })();
+    </script>
+
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/dashboard" class="cvp-brand">
+                <div class="cvp-brand" style="margin-bottom: 1rem;">
+                    <img src="{% static 'images/logo.jpg' %}" alt="WestLinks Exchange"
+                        style="height: 36px; width: auto;">
+                    <span style="margin-left: 0.75rem;">WestLinks</span>
+                </div>
+            </a>
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
+            <nav class="cvp-nav">
+                <a href="/dashboard" class="cvp-link">Dashboard</a>
+                <a href="/profile" class="cvp-link">Profile</a>
+                <div id="dashUserMenu" style="display:flex; align-items:center; gap:.5rem; margin-left:1rem;">
+                    <div id="dashAvatar"
+                        style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg, var(--highlight-yellow), var(--highlight-cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.875rem;">
+                        U</div>
+                    <span id="dashUserName" class="text-primary" style="font-weight:600;"></span>
+                    <button onclick="logout()" class="cvp-link"
+                        style="color:#ef4444; background:none; border:none; cursor:pointer;">Logout</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Main Menu</div>
+                    <a href="/dashboard" class="sidebar-link"><i
+                            data-lucide="layout-dashboard"></i><span>Overview</span></a>
+                    <a href="/buy" class="sidebar-link"><i data-lucide="arrow-down-circle"></i><span>Buy
+                            Crypto</span></a>
+                    <a href="/sell" class="sidebar-link"><i data-lucide="arrow-up-circle"></i><span>Sell
+                            Crypto</span></a>
+                    <a href="/exchange" class="sidebar-link"><i data-lucide="refresh-cw"></i><span>Exchange</span></a>
+                    <a href="/exchange/history" class="sidebar-link"><i data-lucide="repeat"></i><span>Exchange
+                            History</span></a>
+                    <a href="/transactions" class="sidebar-link"><i
+                            data-lucide="receipt"></i><span>Transactions</span></a>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Settings</div>
+                    <a href="/profile" class="sidebar-link"><i data-lucide="user"></i><span>Profile</span></a>
+                    <a href="/payment-methods" class="sidebar-link active"><i
+                            data-lucide="credit-card"></i><span>Payment Methods</span></a>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Account</div>
+                    <a href="#" class="sidebar-link" onclick="logout(); return false;"><i
+                            data-lucide="log-out"></i><span>Logout</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <div class="settings-section">
+                <h2 class="settings-section-title">Payment Methods</h2>
+                <p class="text-muted" style="margin-bottom: 1.5rem;">Manage where you receive funds when selling crypto.
+                    Add & verify your payment accounts.</p>
+
+                <div id="paymentMethodsList"></div>
+
+                <button onclick="showAddModal()" class="btn btn-primary" style="margin-top: 1rem;">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Add Payment Method
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Method Modal -->
+    <div id="addModal"
+        style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:3000; align-items:center; justify-content:center;">
+        <div class="glass-card" style="max-width:500px; width:90%; padding:2rem;">
+            <h3 style="margin-bottom:1.5rem;">Add Payment Method</h3>
+            <form id="addForm" onsubmit="initiateVerification(event)">
+                <div style="margin-bottom:1rem;">
+                    <label>Type</label>
+                    <select id="paymentType" class="field" onchange="toggleFields()" required>
+                        <option value="">Select...</option>
+                        <option value="mobilemoney">Mobile Money</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+                <div id="momoFields" style="display:none;">
+                    <div style="margin-bottom:1rem;">
+                        <label>Network</label>
+                        <select id="mobileNetwork" class="field">
+                            <option value="mtn">MTN</option>
+                            <option value="vodafone">Vodafone</option>
+                            <option value="airteltigo">AirtelTigo</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label>Number</label>
+                        <input id="mobileNumber" type="tel" class="field" placeholder="0593021696" />
+                    </div>
+                </div>
+                <div id="bankFields" style="display:none;">
+                    <div style="margin-bottom:1rem;">
+                        <label>Bank Name</label>
+                        <input id="bankName" type="text" class="field" placeholder="GCB Bank" />
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label>Account Number</label>
+                        <input id="accountNumber" type="text" class="field" placeholder="1234567890" />
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label>Account Name</label>
+                        <input id="accountName" type="text" class="field" placeholder="John Doe" />
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label>Nickname (optional)</label>
+                    <input id="nickname" type="text" class="field" placeholder="My Primary Account" />
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input id="setDefault" type="checkbox" /> Set as default
+                    </label>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="button" onclick="closeAddModal()" class="btn btn-secondary"
+                        style="flex:1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verifyModal"
+        style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:3001; align-items:center; justify-content:center;">
+        <div class="glass-card" style="max-width:400px; width:90%; padding:2rem; text-align:center;">
+            <h3 style="margin-bottom:0.5rem;">Verify Your Email</h3>
+            <p class="text-muted" style="margin-bottom:1.5rem;">We sent a 6-digit code to your email</p>
+            <input id="verifyCode" type="text" class="field" placeholder="123456" maxlength="6"
+                style="text-align:center; font-size:1.5rem; letter-spacing:0.5rem; margin-bottom:1rem;" />
+            <div style="display:flex; gap:0.5rem;">
+                <button onclick="closeVerifyModal()" class="btn btn-secondary" style="flex:1;">Cancel</button>
+                <button onclick="verifyCode()" class="btn btn-primary" style="flex:1;">Verify</button>
+            </div>
+            <p class="text-muted" style="font-size:0.75rem; margin-top:1rem;">Code expires in 10 minutes</p>
+        </div>
+    </div>
+
+    <div id="toast"
+        style="display:none; position:fixed; bottom:2rem; right:2rem; background:var(--bg-card); border:1px solid var(--highlight-cyan); border-radius:12px; padding:1rem; box-shadow:var(--shadow-lg); z-index:2000; min-width:300px;">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <i data-lucide="info" style="width:24px; height:24px; color:var(--highlight-cyan);"></i>
+            <div id="toastMsg">Processing...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+        let currentVerificationId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            initHeader();
+            loadPaymentMethods();
+        });
+
+        function initHeader() {
+            const user = JSON.parse(localStorage.getItem('coinvibe_user') || '{}');
+            const name = user.name || user.username || user.full_name || '';
+            if (document.getElementById('dashUserName')) document.getElementById('dashUserName').textContent = name;
+            if (document.getElementById('dashAvatar')) document.getElementById('dashAvatar').textContent = name ? name[0].toUpperCase() : 'U';
+        }
+
+        async function loadPaymentMethods() {
+            const token = localStorage.getItem('coinvibe_token');
+            try {
+                const res = await fetch(`${API_URL}/payment-methods/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const list = document.getElementById('paymentMethodsList');
+                if (data.success && data.payment_methods && data.payment_methods.length > 0) {
+                    list.innerHTML = data.payment_methods.map(m => {
+                        const label = m.payment_type === 'mobilemoney' ? `${m.mobile_network.toUpperCase()} - ${m.mobile_number}` : `${m.bank_name} - ${m.account_number}`;
+                        return `<div class="glass-card" style="padding:1.5rem; margin-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 style="font-weight:600;">${m.nickname || label} ${m.is_default ? '<span style="background:var(--highlight-green); color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:0.5rem;">DEFAULT</span>' : ''}</h4>
+                  <p class="text-muted" style="font-size:0.875rem; margin-top:0.25rem;">${label}</p>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                  ${!m.is_default ? `<button onclick="setDefault(${m.id})" class="btn btn-secondary">Set Default</button>` : ''}
+                  <button onclick="deleteMethod(${m.id})" class="btn" style="background:var(--bg-secondary); color:#ef4444;">Delete</button>
+                </div>
+              </div>
+            </div>`;
+                    }).join('');
+                } else {
+                    list.innerHTML = `<div style="text-align:center; padding:3rem;"><p class="text-muted">No payment methods yet. Add one to get started!</p></div>`;
+                }
+                if (window.lucide) lucide.createIcons();
+            } catch (e) {
+                showToast('Failed to load payment methods');
+            }
+        }
+
+        function showAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addForm').reset();
+        }
+
+        function toggleFields() {
+            const type = document.getElementById('paymentType').value;
+            document.getElementById('momoFields').style.display = type === 'mobilemoney' ? 'block' : 'none';
+            document.getElementById('bankFields').style.display = type === 'bank' ? 'block' : 'none';
+        }
+
+        async function initiateVerification(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('coinvibe_token');
+            const type = document.getElementById('paymentType').value;
+            if (!type) { showToast('Select payment type'); return; }
+
+            const payload = { payment_type: type, nickname: document.getElementById('nickname').value, is_default: document.getElementById('setDefault').checked };
+            if (type === 'mobilemoney') {
+                payload.mobile_network = document.getElementById('mobileNetwork').value;
+                payload.mobile_number = document.getElementById('mobileNumber').value;
+            } else {
+                payload.bank_name = document.getElementById('bankName').value;
+                payload.account_number = document.getElementById('accountNumber').value;
+                payload.account_name = document.getElementById('accountName').value;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/payment-methods/initiate/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentVerificationId = data.verification_id;
+                    closeAddModal();
+                    document.getElementById('verifyModal').style.display = 'flex';
+                    showToast('Verification code sent to email!');
+                } else {
+                    showToast(data.detail || 'Failed');
+                }
+            } catch (e) {
+                showToast('Network error');
+            }
+        }
+
+        function closeVerifyModal() {
+            document.getElementById('verifyModal').style.display = 'none';
+        }
+
+        async function verifyCode() {
+            const token = localStorage.getItem('coinvibe_token');
+            const code = document.getElementById('verifyCode').value;
+            if (!code || code.length !== 6) { showToast('Enter 6-digit code'); return; }
+
+            try {
+                const res = await fetch(`${API_URL}/payment-methods/verify/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ verification_id: currentVerificationId, code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeVerifyModal();
+                    showToast('Payment method added!');
+                    loadPaymentMethods();
+                } else {
+                    showToast(data.detail || 'Invalid code');
+                }
+            } catch (e) {
+                showToast('Network error');
+            }
+        }
+
+        async function setDefault(id) {
+            const token = localStorage.getItem('coinvibe_token');
+            try {
+                const res = await fetch(`${API_URL}/payment-methods/${id}/set-default/`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Default updated');
+                    loadPaymentMethods();
+                }
+            } catch (e) {
+                showToast('Failed');
+            }
+        }
+
+        async function deleteMethod(id) {
+            if (!confirm('Delete this payment method?')) return;
+            const token = localStorage.getItem('coinvibe_token');
+            try {
+                const res = await fetch(`${API_URL}/payment-methods/${id}/`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Deleted');
+                    loadPaymentMethods();
+                }
+            } catch (e) {
+                showToast('Failed');
+            }
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            el.style.display = 'block';
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('coinvibe_token');
+            localStorage.removeItem('coinvibe_user');
+            window.location.href = '/';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('dashboardSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('active');
+            if (backdrop) backdrop.classList.toggle('active');
+        }
+
+        // Close sidebar when clicking backdrop
+        document.addEventListener('DOMContentLoaded', () => {
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) backdrop.addEventListener('click', toggleSidebar);
+        });
+    </script>
+
+    <!-- Sidebar Backdrop for Mobile -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+</body>
+
+</html>

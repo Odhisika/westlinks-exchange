@@ -29,6 +29,18 @@ class ProtectedTemplateView(TemplateView):
         response['Expires'] = '0'
         return response
 
+class BuyManualSuccessView(TemplateView):
+    template_name = 'buy_success.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        reference = self.request.GET.get('reference') or '--'
+        # For manual payment, we assume success if they got here
+        context['success'] = True
+        context['status'] = 'Pending Verification'
+        context['reference'] = reference
+        return context
+
 class VendorPasswordResetView(FormView):
     template_name = 'registration/password_reset_form.html'
     form_class = VendorPasswordResetForm

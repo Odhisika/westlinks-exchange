@@ -381,17 +381,32 @@ class AdminVendorUpdateView(APIView):
             v = Vendor.objects.get(id=vendor_id)
         except Vendor.DoesNotExist:
             return Response({'detail': 'Vendor not found'}, status=404)
+        
         if action == 'activate':
             v.is_active = True
+            v.save()
         elif action == 'deactivate':
             v.is_active = False
+            v.save()
         elif action == 'verify':
             v.is_verified = True
+            v.save()
         elif action == 'unverify':
             v.is_verified = False
+            v.save()
+        elif action == 'delete':
+            # Log the deletion
+            AuditLog.objects.create(
+                vendor_id=v.id,
+                action='ADMIN_DELETED_VENDOR',
+                details=f'Deleted vendor: {v.name} ({v.email})'
+            )
+            # Delete the vendor
+            v.delete()
+            return Response({'success': True, 'message': 'Vendor deleted successfully'})
         else:
             return Response({'detail':'Invalid action'}, status=400)
-        v.save()
+        
         return Response({'success': True})
 
 class AdminTransactionsView(APIView):
@@ -481,12 +496,18 @@ class AdminBuyOrderUpdateView(APIView):
         
         # Get update data
         tx_hash = request.data.get('tx_hash')
+        payment_status = request.data.get('payment_status')
         delivery_status = request.data.get('delivery_status')
         admin_notes = request.data.get('admin_notes')
         
         # Update fields
         if tx_hash is not None:
             order.tx_hash = tx_hash.strip()
+            
+        if payment_status:
+            order.payment_status = payment_status
+            if payment_status == 'paid' and not order.paid_at:
+                order.paid_at = timezone.now()
         
         if delivery_status:
             order.delivery_status = delivery_status

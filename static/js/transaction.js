@@ -4,115 +4,115 @@ const tokenRaw = localStorage.getItem('coinvibe_token');
 const authToken = tokenRaw && tokenRaw !== 'null' && tokenRaw !== 'undefined' && tokenRaw !== '' ? tokenRaw : null;
 
 if (!authToken || !currentUser) {
-    window.location.href = '/login';
+  window.location.href = '/login';
 }
 
 let allTransactions = [];
 let currentFilters = { status: '', type: '' };
 
 function initHeader() {
-    const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ?
-        (currentUser.name || currentUser.username || currentUser.full_name) : '';
-    document.getElementById('dashUserName').textContent = name;
-    document.getElementById('dashAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
+  const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ?
+    (currentUser.name || currentUser.username || currentUser.full_name) : '';
+  document.getElementById('dashUserName').textContent = name;
+  document.getElementById('dashAvatar').textContent = name ? name.charAt(0).toUpperCase() : 'U';
 }
 
 function logout() {
-    localStorage.removeItem('coinvibe_token');
-    localStorage.removeItem('coinvibe_user');
-    window.location.href = '/';
+  localStorage.removeItem('coinvibe_token');
+  localStorage.removeItem('coinvibe_user');
+  window.location.href = '/';
 }
 
 function toggleSidebar() {
-    const sidebar = document.getElementById('dashboardSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-    sidebar.classList.toggle('open');
-    sidebar.classList.toggle('active');
-    if (backdrop) {
-        backdrop.classList.toggle('visible');
-        backdrop.classList.toggle('active');
-    }
+  const sidebar = document.getElementById('dashboardSidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  sidebar.classList.toggle('open');
+  sidebar.classList.toggle('active');
+  if (backdrop) {
+    backdrop.classList.toggle('visible');
+    backdrop.classList.toggle('active');
+  }
 }
 
 async function loadTransactions() {
-    try {
-        if (!authToken) {
-            console.error('No auth token');
-            return;
-        }
-
-        const res = await fetch(`${API_URL}/vendors/me/transactions`, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-
-        if (res.status === 401) {
-            window.location.href = '/login';
-            return;
-        }
-
-        const data = await res.json();
-        allTransactions = data.transactions || [];
-
-        document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
-
-        renderTransactions(allTransactions);
-    } catch (e) {
-        console.error('Failed to load transactions:', e);
-
-        // Desktop view
-        document.getElementById('transactionsTable').innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
-            </div>
-            <h4 class="empty-state-title">Error loading transactions</h4>
-            <p class="empty-state-desc">${e.message}</p>
-          </div>`;
-
-        // Mobile view
-        document.getElementById('transactionsMobile').innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
-            </div>
-            <h4 class="empty-state-title">Error loading transactions</h4>
-            <p class="empty-state-desc">${e.message}</p>
-          </div>`;
-
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
+  try {
+    if (!authToken) {
+      console.error('No auth token');
+      return;
     }
+
+    const res = await fetch(`${API_URL}/vendors/me/transactions`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const data = await res.json();
+    allTransactions = data.transactions || [];
+
+    document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
+
+    renderTransactions(allTransactions);
+  } catch (e) {
+    console.error('Failed to load transactions:', e);
+
+    // Desktop view
+    document.getElementById('transactionsTable').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
+            </div>
+            <h4 class="empty-state-title">Error loading transactions</h4>
+            <p class="empty-state-desc">${e.message}</p>
+          </div>`;
+
+    // Mobile view
+    document.getElementById('transactionsMobile').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <i data-lucide="alert-circle" style="width: 40px; height: 40px; color: #ef4444;"></i>
+            </div>
+            <h4 class="empty-state-title">Error loading transactions</h4>
+            <p class="empty-state-desc">${e.message}</p>
+          </div>`;
+
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  }
 }
 
 function applyFilters() {
-    currentFilters.status = document.getElementById('filterStatus').value;
-    currentFilters.type = document.getElementById('filterType').value;
+  currentFilters.status = document.getElementById('filterStatus').value;
+  currentFilters.type = document.getElementById('filterType').value;
 
-    let filtered = allTransactions;
+  let filtered = allTransactions;
 
-    if (currentFilters.status) {
-        filtered = filtered.filter(t => t.status === currentFilters.status);
-    }
+  if (currentFilters.status) {
+    filtered = filtered.filter(t => t.status === currentFilters.status);
+  }
 
-    if (currentFilters.type) {
-        filtered = filtered.filter(t => t.type === currentFilters.type);
-    }
+  if (currentFilters.type) {
+    filtered = filtered.filter(t => t.type === currentFilters.type);
+  }
 
-    document.getElementById('transactionCount').textContent = `${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} found`;
-    renderTransactions(filtered);
+  document.getElementById('transactionCount').textContent = `${filtered.length} transaction${filtered.length !== 1 ? 's' : ''} found`;
+  renderTransactions(filtered);
 }
 
 function clearFilters() {
-    document.getElementById('filterStatus').value = '';
-    document.getElementById('filterType').value = '';
-    currentFilters = { status: '', type: '' };
-    document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
-    renderTransactions(allTransactions);
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterType').value = '';
+  currentFilters = { status: '', type: '' };
+  document.getElementById('transactionCount').textContent = `${allTransactions.length} transaction${allTransactions.length !== 1 ? 's' : ''} found`;
+  renderTransactions(allTransactions);
 }
 
 function renderTransactions(transactions) {
-    if (transactions.length === 0) {
-        // Desktop view
-        document.getElementById('transactionsTable').innerHTML = `
+  if (transactions.length === 0) {
+    // Desktop view
+    document.getElementById('transactionsTable').innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">
               <i data-lucide="receipt" style="width: 40px; height: 40px;"></i>
@@ -121,8 +121,8 @@ function renderTransactions(transactions) {
             <p class="empty-state-desc">Try adjusting your filters or create a new transaction</p>
           </div>`;
 
-        // Mobile view
-        document.getElementById('transactionsMobile').innerHTML = `
+    // Mobile view
+    document.getElementById('transactionsMobile').innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">
               <i data-lucide="receipt" style="width: 40px; height: 40px;"></i>
@@ -131,12 +131,12 @@ function renderTransactions(transactions) {
             <p class="empty-state-desc">Try adjusting your filters or create a new transaction</p>
           </div>`;
 
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
-        return;
-    }
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+    return;
+  }
 
-    // Render Desktop Table View
-    const rows = transactions.map(t => `
+  // Render Desktop Table View
+  const rows = transactions.map(t => `
         <tr>
           <td class="font-mono" style="font-size: 0.875rem;">
             <a href="/transactions/${t.payment_id}" class="text-primary" style="text-decoration:none; font-weight:600;">${t.payment_id}</a>
@@ -157,7 +157,7 @@ function renderTransactions(transactions) {
         </tr>
       `).join('');
 
-    document.getElementById('transactionsTable').innerHTML = `
+  document.getElementById('transactionsTable').innerHTML = `
         <div class="table-responsive">
           <table class="dashboard-table">
             <thead>
@@ -177,8 +177,8 @@ function renderTransactions(transactions) {
           </table>
         </div>`;
 
-    // Render Mobile Card View
-    const cards = transactions.map(t => `
+  // Render Mobile Card View
+  const cards = transactions.map(t => `
         <div class="transaction-card">
           <div class="transaction-card-header">
             <div>
@@ -220,97 +220,97 @@ function renderTransactions(transactions) {
         </div>
       `).join('');
 
-    document.getElementById('transactionsMobile').innerHTML = cards;
+  document.getElementById('transactionsMobile').innerHTML = cards;
 
-    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
 function getStatusBadge(status) {
-    const badges = {
-        pending: 'badge-warning',
-        paid: 'badge-info',
-        sent: 'badge-primary',
-        confirmed: 'badge-success',
-        completed: 'badge-success',
-        failed: 'badge-danger',
-        processing: 'badge-info'
-    };
-    return badges[status] || 'badge-secondary';
+  const badges = {
+    pending: 'badge-warning',
+    paid: 'badge-info',
+    sent: 'badge-primary',
+    confirmed: 'badge-success',
+    completed: 'badge-success',
+    failed: 'badge-danger',
+    processing: 'badge-info'
+  };
+  return badges[status] || 'badge-secondary';
 }
 
 function exportTransactions() {
-    // Convert to CSV format
-    const headers = ['Payment ID', 'Type', 'Amount', 'Status', 'Wallet', 'Network', 'TX Hash', 'Date'];
-    const rows = allTransactions.map(t => [
-        t.payment_id,
-        t.type,
-        t.fiat_amount || t.crypto_amount,
-        t.status,
-        t.wallet_address || '',
-        t.network || '',
-        t.crypto_tx_hash || '',
-        new Date(t.created_at).toLocaleString()
-    ]);
+  // Convert to CSV format
+  const headers = ['Payment ID', 'Type', 'Amount', 'Status', 'Wallet', 'Network', 'TX Hash', 'Date'];
+  const rows = allTransactions.map(t => [
+    t.payment_id,
+    t.type,
+    t.fiat_amount || t.crypto_amount,
+    t.status,
+    t.wallet_address || '',
+    t.network || '',
+    t.crypto_tx_hash || '',
+    new Date(t.created_at).toLocaleString()
+  ]);
 
-    let csv = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csv += row.map(cell => `"${cell}"`).join(',') + '\n';
-    });
+  let csv = headers.join(',') + '\n';
+  rows.forEach(row => {
+    csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+  });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
 }
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    initHeader();
-    loadTransactions();
+  initHeader();
+  loadTransactions();
 
-    // Initialize Lucide icons
-    if (window.lucide && lucide.createIcons) {
-        lucide.createIcons();
-    }
+  // Initialize Lucide icons
+  if (window.lucide && lucide.createIcons) {
+    lucide.createIcons();
+  }
 
-    // Filter button
-    const filterBtn = document.getElementById('filterBtn');
-    if (filterBtn) {
-        filterBtn.addEventListener('click', function () {
-            const panel = document.getElementById('filterPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        });
-    }
-
-    // Export button
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportTransactions);
-    }
-
-    // Sidebar backdrop
-    const backdrop = document.getElementById('sidebarBackdrop');
-    if (backdrop) {
-        backdrop.addEventListener('click', toggleSidebar);
-    }
-
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function (e) {
-        const sidebar = document.getElementById('dashboardSidebar');
-        const toggle = document.querySelector('.mobile-nav-toggle');
-        const backdrop = document.getElementById('sidebarBackdrop');
-
-        if (sidebar && sidebar.classList.contains('active') &&
-            !sidebar.contains(e.target) &&
-            toggle && !toggle.contains(e.target)) {
-            sidebar.classList.remove('active');
-            sidebar.classList.remove('open');
-            if (backdrop) {
-                backdrop.classList.remove('active');
-                backdrop.classList.remove('visible');
-            }
-        }
+  // Filter button
+  const filterBtn = document.getElementById('filterBtn');
+  if (filterBtn) {
+    filterBtn.addEventListener('click', function () {
+      const panel = document.getElementById('filterPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     });
+  }
+
+  // Export button
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportTransactions);
+  }
+
+  // Sidebar backdrop
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', toggleSidebar);
+  }
+
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', function (e) {
+    const sidebar = document.getElementById('dashboardSidebar');
+    const toggle = document.querySelector('.mobile-nav-toggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (sidebar && sidebar.classList.contains('active') &&
+      !sidebar.contains(e.target) &&
+      toggle && !toggle.contains(e.target)) {
+      sidebar.classList.remove('active');
+      sidebar.classList.remove('open');
+      if (backdrop) {
+        backdrop.classList.remove('active');
+        backdrop.classList.remove('visible');
+      }
+    }
+  });
 });

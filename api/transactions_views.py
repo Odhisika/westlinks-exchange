@@ -228,3 +228,98 @@ class SellGetView(APIView):
             'network': t.network,
             'status': t.status,
         }})
+
+class BuyPaymentInstructionsView(APIView):
+    """Get payment instructions for a buy order"""
+    def get(self, request, order_id):
+        b = BuyOrder.objects.filter(order_id=order_id).first()
+        if not b:
+            return Response({'detail': 'Order not found'}, status=404)
+        
+        if b.payment_status == 'paid':
+            return Response({'detail': 'Order already paid'}, status=400)
+            
+        # Get payment settings
+        from .models import ExchangePaymentSettings
+        settings = ExchangePaymentSettings.objects.order_by('-last_updated').first()
+        
+        if not settings:
+            settings = ExchangePaymentSettings.objects.create()
+            
+        instructions = {
+            'amount_ghs': b.total_charge_ghs,
+            'reference': b.order_id,
+            'mobile_money': {
+                'number': settings.ghs_momo_number or 'Not configured',
+                'name': settings.ghs_momo_name or 'Not configured',
+                'network': settings.ghs_momo_network or 'MTN',
+            },
+            'bank_transfer': {
+                'bank_name': settings.ghs_bank_name or 'Not configured',
+                'account_number': settings.ghs_account_number or 'Not configured',
+                'account_name': settings.ghs_account_name or 'Not configured',
+            }
+        }
+        
+        return Response({
+            'success': True,
+            'order_id': order_id,
+            'instructions': instructions
+        })
+
+class BuyConfirmPaymentView(APIView):
+    """Confirm payment for a buy order"""
+    def post(self, request, order_id):
+        payment_reference = request.data.get('payment_reference')
+        
+        b = BuyOrder.objects.filter(order_id=order_id).first()
+        if not b:
+            return Response({'detail': 'Order not found'}, status=404)
+            
+        if b.payment_status == 'paid':
+            return Response({'detail': 'Order already paid'}, status=400)
+            
+        if not payment_reference:
+            return Response({'detail': 'Payment reference is required'}, status=400)
+            
+        # Update order
+        b.payment_reference = payment_reference.strip()
+        b.payment_status = 'verification_pending'
+        b.paid_at = timezone.now()
+        b.status = 'processing' # Move to processing
+        b.save()
+        
+        # Update associated transaction if exists
+        t = Transaction.objects.filter(payment_id=order_id, type='buy').first()
+        if t:
+            t.status = 'processing'
+            t.save()
+            
+        # Send email notification
+        from .email_service import send_buy_order_email
+        try:
+            # Get user email - either from transaction or vendor
+            email = None
+            if t and t.customer_email:
+                email = t.customer_email
+            elif b.asset: # Just a check to ensure b exists
+                # Try to get vendor email
+                v = Vendor.objects.filter(email=request.user.email if request.user.is_authenticated else '').first()
+                if v:
+                    email = v.email
+            
+            if email:
+                send_buy_order_email(email, {
+                    'order_id': b.order_id,
+                    'amount_ghs': b.amount_ghs,
+                    'asset_symbol': b.asset_symbol,
+                    'network': b.network,
+                    'recipient_address': b.recipient_address
+                })
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+            
+        return Response({
+            'success': True,
+            'message': 'Payment confirmed. Admin will process your order shortly.'
+        })

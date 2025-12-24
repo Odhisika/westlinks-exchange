@@ -67,6 +67,14 @@
                         <i data-lucide="arrow-up-circle"></i>
                         <span>Sell Crypto</span>
                     </a>
+                    <a href="/exchange" class="sidebar-link">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Exchange</span>
+                    </a>
+                    <a href="/exchange/history" class="sidebar-link">
+                        <i data-lucide="repeat"></i>
+                        <span>Exchange History</span>
+                    </a>
                     <a href="/transactions" class="sidebar-link active">
                         <i data-lucide="receipt"></i>
                         <span>Transactions</span>
@@ -79,7 +87,15 @@
                         <i data-lucide="user"></i>
                         <span>Profile</span>
                     </a>
-                    <a href="#" onclick="logout()" class="sidebar-link">
+                    <a href="/payment-methods" class="sidebar-link">
+                        <i data-lucide="credit-card"></i>
+                        <span>Payment Methods</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Account</h3>
+                    <a href="#" onclick="logout(); return false;" class="sidebar-link">
                         <i data-lucide="log-out"></i>
                         <span>Logout</span>
                     </a>
@@ -141,11 +157,10 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('dashboardSidebar').classList.toggle('open');
+            const sidebar = document.getElementById('dashboardSidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
-            if (backdrop) {
-                backdrop.classList.toggle('visible');
-            }
+            sidebar.classList.toggle('active');
+            if (backdrop) backdrop.classList.toggle('active');
         }
 
         function getStatusBadge(status) {

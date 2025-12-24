@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Vendor, VendorSession, Transaction, BuyOrder
+from .email_service import send_welcome_email
 import secrets
+import re
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
@@ -18,19 +20,94 @@ def get_vendor(request):
         return None
     return sess.vendor
 
+def validate_password_strength(password, username='', email=''):
+    """
+    Validate password strength with multiple security checks
+    Returns: (is_valid: bool, error_message: str)
+    """
+    # Common weak passwords blacklist
+    common_passwords = [
+        '123456', 'password', '12345678', 'qwerty', '123456789', '12345',
+        '1234', '111111', '1234567', 'dragon', '123123', 'baseball', 'iloveyou',
+        'trustno1', '1234567890', 'sunshine', 'master', 'welcome', 'shadow',
+        'ashley', 'football', 'jesus', 'michael', 'ninja', 'mustang', 'password1'
+    ]
+    
+    # Check minimum length
+    if len(password) < 8:
+        return False, 'Password must be at least 8 characters long'
+    
+    # Check for uppercase
+    if not re.search(r'[A-Z]', password):
+        return False, 'Password must contain at least one uppercase letter'
+    
+    # Check for lowercase
+    if not re.search(r'[a-z]', password):
+        return False, 'Password must contain at least one lowercase letter'
+    
+    # Check for number
+    if not re.search(r'[0-9]', password):
+        return False, 'Password must contain at least one number'
+    
+    # Check against common passwords
+    if password.lower() in common_passwords:
+        return False, 'This password is too common. Please choose a stronger password'
+    
+    # Check similarity to username
+    if username and len(username) > 2:
+        username_lower = username.lower()
+        password_lower = password.lower()
+        if username_lower in password_lower or password_lower in username_lower:
+            return False, 'Password cannot be similar to your name'
+    
+    # Check similarity to email
+    if email and len(email) > 2:
+        email_parts = email.lower().split('@')[0]
+        password_lower = password.lower()
+        if email_parts in password_lower or password_lower in email_parts:
+            return False, 'Password cannot be similar to your email'
+    
+    return True, ''
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class VendorRegisterView(APIView):
     def post(self, request):
         name = request.data.get('name')
         email = request.data.get('email')
         password = request.data.get('password')
+        password_confirmation = request.data.get('password_confirmation')
         momo = request.data.get('momo_number')
+        
+        # Check all required fields
         if not all([name, email, password, momo]):
-            return Response({'detail':'missing_fields'}, status=400)
+            return Response({'detail':'missing_fields', 'success': False}, status=400)
+        
+        # Check password confirmation
+        if not password_confirmation:
+            return Response({'detail':'password_confirmation_required', 'success': False}, status=400)
+        
+        if password != password_confirmation:
+            return Response({'detail':'passwords_do_not_match', 'success': False}, status=400)
+        
+        # Validate password strength
+        is_valid, error_message = validate_password_strength(password, username=name, email=email)
+        if not is_valid:
+            return Response({'detail': error_message, 'success': False}, status=400)
+        
+        # Check if email already exists
         if Vendor.objects.filter(email=email).exists():
-            return Response({'detail':'email_exists'}, status=400)
+            return Response({'detail':'email_exists', 'success': False}, status=400)
+        
+        # Create vendor
         v = Vendor(name=name, email=email, password_hash=make_password(password), momo_number=momo)
         v.save()
+        
+        # Send welcome email
+        email_sent = send_welcome_email(v.email, v.name)
+        if not email_sent:
+            print(f"WARNING: Failed to send welcome email to {v.email}")
+        
         return Response({'success': True, 'vendor': {'id': v.id, 'name': v.name, 'email': v.email, 'momo_number': v.momo_number, 'country': v.country, 'balance': v.balance, 'is_active': v.is_active, 'is_verified': v.is_verified}})
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -99,9 +176,9 @@ class VendorTransactionsView(APIView):
         # Get transactions
         qs = Transaction.objects.filter(vendor=v).order_by('-created_at')[:500]
         
-        # Fetch BuyOrder delivery statuses
+        # Fetch BuyOrder statuses
         buy_payment_ids = [t.payment_id for t in qs if t.type == 'buy']
-        buy_orders = {b.order_id: b.delivery_status for b in BuyOrder.objects.filter(order_id__in=buy_payment_ids)}
+        buy_orders = {b.order_id: {'delivery': b.delivery_status, 'payment': b.payment_status} for b in BuyOrder.objects.filter(order_id__in=buy_payment_ids)}
         
         data = [
             {
@@ -114,7 +191,8 @@ class VendorTransactionsView(APIView):
                 'wallet_address': t.wallet_address,
                 'crypto_tx_hash': t.crypto_tx_hash,
                 'status': t.status,
-                'delivery_status': buy_orders.get(t.payment_id) if t.type == 'buy' else None,
+                'delivery_status': buy_orders.get(t.payment_id, {}).get('delivery') if t.type == 'buy' else None,
+                'payment_status': buy_orders.get(t.payment_id, {}).get('payment') if t.type == 'buy' else None,
                 'created_at': t.created_at.isoformat(),
             }
             for t in qs
@@ -144,10 +222,12 @@ class VendorTransactionDetailView(APIView):
             return Response({'detail':'not_found'}, status=404)
             
         delivery_status = None
+        payment_status = None
         if t.type == 'buy':
             b = BuyOrder.objects.filter(order_id=t.payment_id).first()
             if b:
                 delivery_status = b.delivery_status
+                payment_status = b.payment_status
         
         data = {
             'payment_id': t.payment_id,
@@ -163,6 +243,7 @@ class VendorTransactionDetailView(APIView):
             'crypto_tx_hash': t.crypto_tx_hash,
             'status': t.status,
             'delivery_status': delivery_status,
+            'payment_status': payment_status,
             'created_at': t.created_at.isoformat(),
         }
         

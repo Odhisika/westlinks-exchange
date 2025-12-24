@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/', include('api.transaction_urls')),
     path('api/', include('api.payment_urls')),
     path('api/', include('api.payout_urls')),
+    path('api/payment-methods/', include('api.payment_methods_urls')),
     path('api/exchange/', include('api.exchange_urls')),
     path('health', health),
     path('password-reset/', views.VendorPasswordResetView.as_view(), name='password_reset'),

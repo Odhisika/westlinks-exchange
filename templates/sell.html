@@ -95,6 +95,10 @@
             <i data-lucide="user"></i>
             <span>Profile</span>
           </a>
+          <a href="/payment-methods" class="sidebar-link">
+            <i data-lucide="credit-card"></i>
+            <span>Payment Methods</span>
+          </a>
         </div>
 
         <div class="sidebar-section">
@@ -138,45 +142,67 @@
                 <span class="text-primary font-weight: 600;" id="sellFee">₵0.00</span>
               </div>
               <div
-                style="display: flex; justify-content: space-between; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                <span class="text-primary">Total</span>
-                <span class="text-green" id="sellTotal">₵0.00</span>
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <span class="text-secondary">Total to Receive</span>
+                <span class="text-primary font-weight: 700; font-size: 1.25rem;" id="sellTotal">₵0.00</span>
               </div>
             </div>
 
-            <div>
-              <label>MoMo Network</label>
-              <select id="sellMoMoNetwork" class="field">
-                <option value="mtn">MTN Mobile Money</option>
-                <option value="airtel">AirtelTigo Money</option>
-                <option value="vodafone">Vodafone Cash</option>
+            <div class="glass-card" style="padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <label style="margin-bottom: 0;">Payment Method</label>
+                <a href="/payment-methods" class="text-cyan"
+                  style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
+                  <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Manage
+                </a>
+              </div>
+              <select id="sellPaymentMethod" class="field" onchange="loadPaymentDetails()">
+                <option value="manual">Enter manually</option>
               </select>
+
+              <div id="manualFields" style="margin-top: 1.5rem; display: grid; gap: 1rem;">
+                <div>
+                  <label>MoMo Network</label>
+                  <select id="sellMoMoNetwork" class="field">
+                    <option value="mtn">MTN</option>
+                    <option value="vodafone">Vodafone</option>
+                    <option value="airteltigo">AirtelTigo</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Mobile Money Number</label>
+                  <input id="sellMoMoNumber" type="tel" class="field" placeholder="0593021696" />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label>Mobile Money Number</label>
-              <input id="sellMoMoNumber" type="tel" class="field" placeholder="0593021696" />
-            </div>
-
-            <div class="glass-card" style="background: var(--bg-secondary); padding: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span class="text-secondary font-weight: 500;">Admin Wallet</span>
-                <button onclick="copyWalletAddress()" class="text-cyan"
-                  style="background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 0.875rem; transition: all 0.3s; padding: 8px 12px; border-radius: 8px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;">
-                  <i data-lucide="copy"></i>
+            <div class="glass-card"
+              style="background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); padding: 1.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <i data-lucide="info" style="color: var(--highlight-yellow); width: 20px; height: 20px;"></i>
+                <span style="font-weight: 600;">Transfer Instructions</span>
+              </div>
+              <p class="text-secondary" style="font-size: 0.875rem; margin-bottom: 1rem;">Please send the exact amount
+                to the wallet address below. Your order will be processed once the transaction is confirmed on the
+                blockchain.</p>
+              <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; position: relative;">
+                <div id="confirmAdminWallet" class="font-mono text-xs"
+                  style="word-break: break-all; padding-right: 2.5rem;">--</div>
+                <button onclick="copyWalletAddress()"
+                  style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--highlight-cyan); cursor: pointer; padding: 0.5rem;">
+                  <i data-lucide="copy" style="width: 18px; height: 18px;"></i>
                 </button>
               </div>
-              <div id="confirmAdminWallet" class="font-mono text-xs"
-                style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; word-break: break-all; color: var(--text-primary);">
-                --</div>
             </div>
+
             <div>
               <label>Blockchain Tx Hash (optional)</label>
               <input id="sellTxHash" type="text" class="field"
                 placeholder="Paste the transaction hash after sending funds" />
             </div>
 
-            <button onclick="confirmSell()" class="btn btn-success" style="width: 100%;">Confirm Sell Order</button>
+            <button onclick="confirmSell()" class="btn btn-success"
+              style="width: 100%; padding: 1rem; font-weight: 700; font-size: 1.125rem;">Confirm Sell Order</button>
           </div>
         </div>
       </section>
@@ -196,21 +222,16 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const brand = document.getElementById('cvpBrand');
-      const t = localStorage.getItem('coinvibe_token');
-      const loggedIn = !!(t && t !== 'null' && t !== 'undefined' && t !== '');
-      if (brand) brand.setAttribute('href', loggedIn ? '/dashboard' : '/');
       if (window.lucide && lucide.createIcons) lucide.createIcons();
       initHeader();
+      loadSavedPaymentMethods();
     });
 
     function initHeader() {
       const currentUser = JSON.parse(localStorage.getItem('coinvibe_user') || '{}');
       const name = currentUser && (currentUser.name || currentUser.username || currentUser.full_name) ? (currentUser.name || currentUser.username || currentUser.full_name) : '';
-
       const userNameEl = document.getElementById('dashUserName');
       if (userNameEl) userNameEl.textContent = name;
-
       const avatarEl = document.getElementById('dashAvatar');
       if (avatarEl) avatarEl.textContent = name ? name.charAt(0).toUpperCase() : 'U';
     }
@@ -221,71 +242,59 @@
       window.location.href = '/';
     }
 
+    async function loadSavedPaymentMethods() {
+      const token = localStorage.getItem('coinvibe_token');
+      try {
+        const res = await fetch('/api/payment-methods/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById('sellPaymentMethod');
+        if (data.success && data.payment_methods) {
+          data.payment_methods.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            const label = m.payment_type === 'mobilemoney' ? `${m.mobile_network.toUpperCase()} (${m.mobile_number})` : `${m.bank_name} (${m.account_number})`;
+            opt.textContent = m.nickname ? `${m.nickname} - ${label}` : label;
+            // Store data for easy access
+            opt.dataset.type = m.payment_type;
+            opt.dataset.network = m.mobile_network || '';
+            opt.dataset.number = m.mobile_number || '';
+            select.appendChild(opt);
+            if (m.is_default) opt.selected = true;
+          });
+          loadPaymentDetails();
+        }
+      } catch (e) {
+        console.error('Failed to load payment methods');
+      }
+    }
+
+    function loadPaymentDetails() {
+      const select = document.getElementById('sellPaymentMethod');
+      const manualFields = document.getElementById('manualFields');
+      const selected = select.options[select.selectedIndex];
+
+      if (select.value === 'manual') {
+        manualFields.style.display = 'grid';
+      } else {
+        manualFields.style.display = 'none';
+        if (selected.dataset.type === 'mobilemoney') {
+          document.getElementById('sellMoMoNetwork').value = selected.dataset.network;
+          document.getElementById('sellMoMoNumber').value = selected.dataset.number;
+        }
+      }
+    }
+
     // Sidebar Logic
     (function () {
       const sidebar = document.getElementById('dashboardSidebar');
-      const toggleBtn = document.querySelector('.sidebar-toggle');
       const mobileToggle = document.querySelector('.mobile-nav-toggle');
-      const body = document.body;
-
-      let backdrop = document.getElementById('sidebarBackdrop');
-      if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'sidebarBackdrop';
-        backdrop.className = 'sidebar-backdrop';
-        document.body.appendChild(backdrop);
-      }
-
-      function isMobileWidth() {
-        return window.innerWidth <= 1024;
-      }
-
-      function openSidebar() {
+      function toggleSidebar() {
         if (!sidebar) return;
-        sidebar.classList.add('active');
-        backdrop.classList.add('visible');
-        body.style.overflow = 'hidden';
+        sidebar.classList.toggle('active');
       }
-
-      function closeSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.remove('active');
-        backdrop.classList.remove('visible');
-        body.style.overflow = '';
-      }
-
-      window.toggleSidebar = function () {
-        if (!sidebar) return;
-        if (sidebar.classList.contains('active')) closeSidebar();
-        else openSidebar();
-      }
-
-      if (toggleBtn) toggleBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        toggleSidebar();
-      });
-
-      if (mobileToggle) mobileToggle.addEventListener('click', function (e) {
-        e.stopPropagation();
-        toggleSidebar();
-      });
-
-      backdrop.addEventListener('click', closeSidebar);
-
-      window.addEventListener('resize', function () {
-        if (!isMobileWidth()) {
-          sidebar.classList.remove('open');
-          backdrop.classList.remove('visible');
-          body.style.overflow = '';
-        }
-      });
-
-      sidebar.addEventListener('click', function (ev) {
-        const link = ev.target.closest('a');
-        if (link && isMobileWidth()) {
-          setTimeout(closeSidebar, 150);
-        }
-      });
+      if (mobileToggle) mobileToggle.addEventListener('click', toggleSidebar);
     })();
   </script>
 </body>

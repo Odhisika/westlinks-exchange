@@ -472,6 +472,14 @@
                         <i data-lucide="arrow-up-circle"></i>
                         <span>Sell Crypto</span>
                     </a>
+                    <a href="/exchange" class="sidebar-link">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Exchange</span>
+                    </a>
+                    <a href="/exchange/history" class="sidebar-link">
+                        <i data-lucide="repeat"></i>
+                        <span>Exchange History</span>
+                    </a>
                     <a href="/transactions" class="sidebar-link active">
                         <i data-lucide="receipt"></i>
                         <span>Transactions</span>
@@ -484,7 +492,15 @@
                         <i data-lucide="user"></i>
                         <span>Profile</span>
                     </a>
-                    <a href="#" onclick="logout()" class="sidebar-link">
+                    <a href="/payment-methods" class="sidebar-link">
+                        <i data-lucide="credit-card"></i>
+                        <span>Payment Methods</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-section-title">Account</h3>
+                    <a href="#" onclick="logout(); return false;" class="sidebar-link">
                         <i data-lucide="log-out"></i>
                         <span>Logout</span>
                     </a>
@@ -585,6 +601,22 @@
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
     <script src="{% static 'js/transaction.js' %}"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('dashboardSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('active');
+            backdrop.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('coinvibe_token');
+            localStorage.removeItem('coinvibe_user');
+            window.location.href = '/';
+        }
+
+        document.getElementById('sidebarBackdrop').addEventListener('click', toggleSidebar);
+    </script>
 </body>
 
 </html>

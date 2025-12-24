@@ -6,6 +6,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard • WestLinks</title>
+
+  <link rel="icon" type="image/png" href="{% static 'images/favicon.ico' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -90,6 +92,10 @@
           <a href="/profile" class="sidebar-link">
             <i data-lucide="user"></i>
             <span>Profile</span>
+          </a>
+          <a href="/payment-methods" class="sidebar-link">
+            <i data-lucide="credit-card"></i>
+            <span>Payment Methods</span>
           </a>
           <a href="#" class="sidebar-link" onclick="loadPublicSettings(); return false;">
             <i data-lucide="refresh-cw"></i>
@@ -219,18 +225,6 @@
               <div id="dashSellRate" class="text-green"
                 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">--</div>
               <div class="text-muted" style="font-size: 0.75rem;">per USDT</div>
-            </div>
-
-            <div class="crypto-card" style="text-align: center;">
-              <div class="text-secondary" style="font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">
-                Admin Wallet</div>
-              <div class="font-mono text-xs break-all text-primary mb-2" id="dashWallet"
-                style="word-break: break-all; font-size: 0.75rem; margin-bottom: 0.5rem;">--</div>
-              <button onclick="copyText(document.getElementById('dashWallet').textContent)" class="text-cyan"
-                style="background: none; border: none; cursor: pointer; font-size: 0.75rem; text-decoration: underline;">
-                <i data-lucide="copy" style="width: 12px; height: 12px; display: inline; margin-right: 4px;"></i>
-                Copy address
-              </button>
             </div>
           </div>
           <div class="text-muted" style="font-size: 0.75rem; margin-top: var(--spacing-md); text-align: center;">
@@ -409,16 +403,29 @@
         const transactions = data.transactions || [];
         console.log('Number of transactions:', transactions.length);
 
-        const rows = transactions.map(t => `
+        const rows = transactions.map(t => {
+          let statusHtml = '';
+          if (t.type === 'buy') {
+            statusHtml = `
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                <span class="badge ${getPaymentStatusBadge(t.payment_status)}" style="font-size:0.7rem;">Pay: ${formatStatus(t.payment_status)}</span>
+                <span class="badge ${getDeliveryStatusBadge(t.delivery_status)}" style="font-size:0.7rem;">Del: ${formatStatus(t.delivery_status)}</span>
+              </div>
+            `;
+          } else {
+            statusHtml = `<span class="badge ${getStatusBadge(t.status)}">${formatStatus(t.status)}</span>`;
+          }
+
+          return `
           <tr>
             <td class="mobile-compact">${t.payment_id}</td>
             <td>${t.fiat_amount ? `₵${Number(t.fiat_amount).toFixed(2)}` : `${t.crypto_amount} ${t.crypto_symbol || 'USDT'}`}</td>
-            <td><span class="badge ${getStatusBadge(t.status)}">${t.status}</span></td>
+            <td>${statusHtml}</td>
             <td class="hide-mobile" style="font-size: 0.875rem;">${new Date(t.created_at).toLocaleString()}</td>
             <td class="hide-mobile">${t.type}</td>
             <td class="hide-mobile font-mono text-xs break-all">${t.wallet_address || '-'}</td>
           </tr>
-        `).join('');
+        `}).join('');
 
         const html = `
           <div class="table-responsive">
@@ -474,8 +481,26 @@
     }
 
     function getStatusBadge(status) {
-      const badges = { pending: 'badge-warning', completed: 'badge-success', failed: 'badge-danger' };
+      const badges = { pending: 'badge-warning', completed: 'badge-success', failed: 'badge-danger', processing: 'badge-info' };
       return badges[status] || 'badge-info';
+    }
+
+    function getPaymentStatusBadge(status) {
+      if (status === 'paid') return 'badge-success';
+      if (status === 'verification_pending') return 'badge-warning';
+      if (status === 'failed') return 'badge-danger';
+      return 'badge-secondary';
+    }
+
+    function getDeliveryStatusBadge(status) {
+      if (status === 'sent' || status === 'confirmed') return 'badge-success';
+      if (status === 'failed') return 'badge-danger';
+      return 'badge-secondary';
+    }
+
+    function formatStatus(s) {
+      if (!s) return '--';
+      return s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
     async function loadPublicSettings() {
