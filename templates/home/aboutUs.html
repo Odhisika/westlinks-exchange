@@ -5,6 +5,8 @@
 
 {% block content %}
 <!-- Hero Section -->
+
+<link rel="stylesheet" href="{% static 'css/aboutus.css' %}">
 <section class="hero-section">
     <div class="cvp-container">
         <div class="hero-content">
@@ -23,12 +25,12 @@
 </section>
 
 <!-- Mission Section -->
-<section style="padding: 4rem 0;">
+<section class="mission-vision-section">
     <div class="cvp-container">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+        <div class="mission-vision-grid">
             <div class="glass-card">
-                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Our Mission</h2>
-                <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-secondary);">
+                <h2>Our Mission</h2>
+                <p>
                     We're on a mission to make cryptocurrency accessible to everyone in Ghana and across Africa. By
                     providing a simple, secure, and reliable platform, we empower individuals to participate in the
                     global digital economy regardless of their technical expertise or financial background.
@@ -36,8 +38,8 @@
             </div>
 
             <div class="glass-card">
-                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Our Vision</h2>
-                <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-secondary);">
+                <h2>Our Vision</h2>
+                <p>
                     To become Africa's leading P2P cryptocurrency platform, bridging the gap between traditional mobile
                     money systems and the decentralized financial future. We envision a world where anyone can trade,
                     save, and invest in digital assets with confidence.
@@ -46,6 +48,7 @@
         </div>
     </div>
 </section>
+
 
 <!-- Stats Bar -->
 <section class="stats-bar">
@@ -98,7 +101,7 @@
 <section class="features-section">
     <div class="cvp-container">
         <div class="section-header">
-            <h2>Why Choose CoinVibe Pay?</h2>
+            <h2>Why WestLinks Exchange ?</h2>
             <p>We're more than just a trading platform - we're your gateway to financial freedom</p>
         </div>
 
@@ -249,7 +252,7 @@
 <section class="cta-section">
     <div class="cvp-container">
         <div class="cta-content">
-            <h2>Join the CoinVibe Pay Community</h2>
+            <h2>Join the WestLinks Exchange Community</h2>
             <p>Start your cryptocurrency journey with Ghana's most trusted P2P trading platform.</p>
             <div class="cta-buttons">
                 <a href="/register" class="btn btn-primary btn-lg">

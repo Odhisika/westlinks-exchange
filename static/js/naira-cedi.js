@@ -285,8 +285,8 @@ async function confirmPayment(currency) {
 
         const data = await res.json();
         if (data.success) {
-            alert('✅ Payment confirmed! We will verify and process your exchange shortly.');
-            window.location.href = '/dashboard';
+            // alert('✅ Payment confirmed! We will verify and process your exchange shortly.');
+            window.location.href = `/exchange-success?id=${currentExchangeId}`;
         } else {
             alert(data.detail || 'Confirmation failed');
         }

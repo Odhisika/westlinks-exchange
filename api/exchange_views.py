@@ -244,6 +244,22 @@ class ExchangeConfirmPaymentView(APIView):
         exchange.paid_at = timezone.now()
         exchange.save()
         
+        # Send email notification
+        from .email_service import send_exchange_order_email
+        try:
+            email = exchange.vendor.email
+            if email:
+                send_exchange_order_email(email, {
+                    'exchange_id': exchange.exchange_id,
+                    'from_amount': exchange.from_amount,
+                    'from_currency': exchange.from_currency,
+                    'to_amount': exchange.to_amount,
+                    'to_currency': exchange.to_currency,
+                    'exchange_rate': exchange.exchange_rate
+                })
+        except Exception:
+            pass
+        
         return Response({
             'success': True,
             'message': 'Payment confirmed. Admin will process your exchange shortly.'

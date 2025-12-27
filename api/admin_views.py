@@ -524,7 +524,8 @@ class AdminBuyOrderUpdateView(APIView):
         
         order.save()
         
-        # Also update related transaction if exists
+        order.save()
+        
         # Also update related transaction if exists
         try:
             tx = Transaction.objects.filter(payment_id=order.order_id, type='buy').first()
@@ -538,6 +539,29 @@ class AdminBuyOrderUpdateView(APIView):
                     tx.crypto_tx_hash = order.tx_hash
                 
                 tx.save()
+        except Exception:
+            pass
+            
+        # Send email notification
+        from .email_service import send_order_status_email
+        try:
+            # Try to find email
+            email = None
+            tx = Transaction.objects.filter(payment_id=order.order_id, type='buy').first()
+            if tx and tx.customer_email:
+                email = tx.customer_email
+            elif order.asset:
+                 # Try to get vendor email
+                v = Vendor.objects.filter(email=request.user.email if request.user.is_authenticated else '').first()
+                if v:
+                    email = v.email
+            
+            if email:
+                send_order_status_email(email, {
+                    'id': order.order_id,
+                    'status': order.status,
+                    'admin_notes': order.admin_notes
+                }, 'Buy')
         except Exception:
             pass
         
@@ -716,6 +740,19 @@ class AdminExchangeUpdateView(APIView):
             exchange.admin_notes = admin_notes.strip()
         
         exchange.save()
+        
+        # Send email notification
+        from .email_service import send_order_status_email
+        try:
+            if exchange.vendor.email:
+                send_order_status_email(exchange.vendor.email, {
+                    'id': exchange.exchange_id,
+                    'status': exchange.status,
+                    'admin_notes': exchange.admin_notes
+                }, 'Exchange')
+        except Exception:
+            pass
+            
         return Response({'success': True, 'message': 'Exchange updated successfully'})
 
 class AdminSellOrdersView(APIView):
@@ -770,4 +807,18 @@ class AdminSellOrderUpdateView(APIView):
                 t.completed_at = timezone.now()
         
         t.save()
+        
+        # Send email notification
+        from .email_service import send_order_status_email
+        try:
+            email = t.customer_email or (t.vendor.email if t.vendor else None)
+            if email:
+                send_order_status_email(email, {
+                    'id': t.payment_id,
+                    'status': t.status,
+                    'admin_notes': '' # Sell orders don't have admin notes field yet, passing empty
+                }, 'Sell')
+        except Exception:
+            pass
+            
         return Response({'success': True, 'message': 'Order updated successfully'})

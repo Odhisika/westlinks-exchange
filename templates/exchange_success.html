@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exchange Order Placed • WestLinks Exchange</title>
+    <link rel="stylesheet" href="{% static 'css/modern_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <header class="cvp-header">
+        <div class="cvp-header-inner">
+            <a href="/" class="cvp-brand">
+                <img src="{% static 'images/logo.jpg' %}" alt="WestLinks Exchange" style="height: 36px; width: auto;">
+                <span style="margin-left: 0.75rem;">WestLinks Exchange</span>
+            </a>
+            <nav class="cvp-nav">
+                <a href="/dashboard" class="cvp-link">Dashboard</a>
+                <a href="/profile" class="cvp-link">Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="cvp-container" style="margin-top: 3rem; margin-bottom: 3rem;">
+        <div class="glass-card" style="max-width: 720px; margin: 0 auto; padding: 2rem;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+                <i id="successIcon" data-lucide="check-circle"
+                    style="width: 40px; height: 40px; color: var(--highlight-green);"></i>
+                <div>
+                    <h1 id="successTitle" style="font-size:1.75rem; font-weight:800; margin:0;">Exchange Order Placed
+                    </h1>
+                    <p id="successMsg" class="text-secondary" style="margin-top:0.25rem;">We've received your order.
+                        We'll verify your payment and process your order as soon as possible.</p>
+                </div>
+            </div>
+
+            <div style="margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="glass-card" style="padding:1rem;">
+                    <div class="text-secondary" style="font-size:0.875rem;">Exchange ID</div>
+                    <div id="refLabel" class="font-mono" style="font-weight:600;">--</div>
+                </div>
+                <div class="glass-card" style="padding:1rem;">
+                    <div class="text-secondary" style="font-size:0.875rem;">Status</div>
+                    <div id="statusLabel" style="font-weight:600; color: var(--highlight-green);">Pending Verification
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:2rem; display:flex; gap:0.75rem;">
+                <a href="/dashboard" class="btn btn-secondary">Go to Dashboard</a>
+                <a href="/exchange" class="btn btn-primary">Start New Exchange</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+            // Parse URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const exchangeId = urlParams.get('id');
+
+            if (exchangeId) {
+                document.getElementById('refLabel').textContent = exchangeId;
+            } else {
+                // Fallback if no ID provided
+                document.getElementById('refLabel').textContent = 'Unknown';
+            }
+        });
+    </script>
+</body>
+
+</html>

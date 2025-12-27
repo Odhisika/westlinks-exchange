@@ -400,8 +400,10 @@
           console.log('==================');
         }
 
-        const transactions = data.transactions || [];
-        console.log('Number of transactions:', transactions.length);
+        // Limit to latest 20 transactions for dashboard
+        const allTransactions = data.transactions || [];
+        const transactions = allTransactions.slice(0, 20);
+        console.log('Number of transactions (dashboard limit):', transactions.length);
 
         const rows = transactions.map(t => {
           let statusHtml = '';

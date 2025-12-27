@@ -425,3 +425,309 @@ WestLinks Exchange Team
     except Exception as e:
         logger.error(f"Failed to send order email to {recipient_email}: {str(e)}")
         return False
+
+
+def send_sell_order_email(recipient_email: str, order_details: dict) -> bool:
+    """
+    Send email notification for a new sell order
+    """
+    subject = f"Sell Order Received - {order_details.get('payment_id')} - WestLinks Exchange"
+    
+    message = f"""
+Hello,
+
+We have successfully received your sell order {order_details.get('payment_id')}.
+
+Order Details:
+Order ID: {order_details.get('payment_id')}
+Crypto Amount: {order_details.get('crypto_amount')} {order_details.get('crypto_symbol')}
+Fiat Amount: {order_details.get('fiat_amount')} GHS
+Network: {order_details.get('network')}
+Wallet Address: {order_details.get('wallet_address')}
+
+Please send your crypto to the wallet address provided on the confirmation page.
+Once we confirm receipt, we will process your payment.
+
+Best regards,
+WestLinks Exchange Team
+    """.strip()
+    
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; }}
+        .header {{ background: linear-gradient(135deg, #fbbf24, #06b6d4); padding: 30px; text-align: center; }}
+        .header h1 {{ color: white; margin: 0; font-size: 24px; }}
+        .content {{ background: #f9fafb; padding: 30px; }}
+        .order-box {{ background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; }}
+        .order-row {{ display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px; }}
+        .order-row:last-child {{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }}
+        .label {{ color: #6b7280; font-size: 14px; }}
+        .value {{ font-weight: 600; color: #1f2937; font-size: 14px; }}
+        .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sell Order Received</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello,</h2>
+            <p>We have successfully received your sell order. Please send your crypto to the wallet address provided.</p>
+            
+            <div class="order-box">
+                <div class="order-row">
+                    <span class="label">Order ID</span>
+                    <span class="value">{order_details.get('payment_id')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">Crypto Amount</span>
+                    <span class="value">{order_details.get('crypto_amount')} {order_details.get('crypto_symbol')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">Fiat Amount</span>
+                    <span class="value">₵{order_details.get('fiat_amount')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">Network</span>
+                    <span class="value">{order_details.get('network')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">Wallet Address</span>
+                    <span class="value" style="font-family: monospace; font-size: 12px;">{order_details.get('wallet_address')}</span>
+                </div>
+            </div>
+            
+            <p>Once we confirm receipt, we will process your payment.</p>
+        </div>
+        
+        <div class="footer">
+            <p>WestLinks Exchange Team</p>
+        </div>
+    </div>
+</body>
+</html>
+    """.strip()
+    
+    try:
+        if not settings.EMAIL_HOST_USER:
+            logger.warning("Email not configured. Sell order email would be sent to: %s", recipient_email)
+            print(f"\n{'='*60}")
+            print(f"SELL ORDER EMAIL FOR {recipient_email}")
+            print(f"Order ID: {order_details.get('payment_id')}")
+            print(f"{'='*60}\n")
+            return True
+            
+        send_mail(
+            subject=subject,
+            message=message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        logger.info(f"Sell order email sent to {recipient_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send sell order email to {recipient_email}: {str(e)}")
+        return False
+
+
+def send_exchange_order_email(recipient_email: str, order_details: dict) -> bool:
+    """
+    Send email notification for a new exchange order
+    """
+    subject = f"Exchange Order Received - {order_details.get('exchange_id')} - WestLinks Exchange"
+    
+    message = f"""
+Hello,
+
+We have successfully received your exchange order {order_details.get('exchange_id')}.
+
+Order Details:
+Order ID: {order_details.get('exchange_id')}
+From: {order_details.get('from_amount')} {order_details.get('from_currency')}
+To: {order_details.get('to_amount')} {order_details.get('to_currency')}
+Rate: {order_details.get('exchange_rate')}
+
+We will process your exchange as soon as possible.
+
+Best regards,
+WestLinks Exchange Team
+    """.strip()
+    
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; }}
+        .header {{ background: linear-gradient(135deg, #fbbf24, #06b6d4); padding: 30px; text-align: center; }}
+        .header h1 {{ color: white; margin: 0; font-size: 24px; }}
+        .content {{ background: #f9fafb; padding: 30px; }}
+        .order-box {{ background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; }}
+        .order-row {{ display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px; }}
+        .order-row:last-child {{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }}
+        .label {{ color: #6b7280; font-size: 14px; }}
+        .value {{ font-weight: 600; color: #1f2937; font-size: 14px; }}
+        .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Exchange Order Received</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello,</h2>
+            <p>We have successfully received your exchange order.</p>
+            
+            <div class="order-box">
+                <div class="order-row">
+                    <span class="label">Order ID</span>
+                    <span class="value">{order_details.get('exchange_id')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">From</span>
+                    <span class="value">{order_details.get('from_amount')} {order_details.get('from_currency')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">To</span>
+                    <span class="value">{order_details.get('to_amount')} {order_details.get('to_currency')}</span>
+                </div>
+                <div class="order-row">
+                    <span class="label">Rate</span>
+                    <span class="value">{order_details.get('exchange_rate')}</span>
+                </div>
+            </div>
+            
+            <p>We will process your exchange as soon as possible.</p>
+        </div>
+        
+        <div class="footer">
+            <p>WestLinks Exchange Team</p>
+        </div>
+    </div>
+</body>
+</html>
+    """.strip()
+    
+    try:
+        if not settings.EMAIL_HOST_USER:
+            logger.warning("Email not configured. Exchange order email would be sent to: %s", recipient_email)
+            print(f"\n{'='*60}")
+            print(f"EXCHANGE ORDER EMAIL FOR {recipient_email}")
+            print(f"Order ID: {order_details.get('exchange_id')}")
+            print(f"{'='*60}\n")
+            return True
+            
+        send_mail(
+            subject=subject,
+            message=message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        logger.info(f"Exchange order email sent to {recipient_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send exchange order email to {recipient_email}: {str(e)}")
+        return False
+
+
+def send_order_status_email(recipient_email: str, order_details: dict, order_type: str) -> bool:
+    """
+    Send email notification for order status update
+    """
+    status = order_details.get('status', '').upper()
+    order_id = order_details.get('id')
+    
+    subject = f"Order Update: {status} - {order_id} - WestLinks Exchange"
+    
+    message = f"""
+Hello,
+
+Your {order_type} order {order_id} has been updated to: {status}.
+
+{f"Admin Note: {order_details.get('admin_notes')}" if order_details.get('admin_notes') else ""}
+
+If you have any questions, please contact support.
+
+Best regards,
+WestLinks Exchange Team
+    """.strip()
+    
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; }}
+        .header {{ background: linear-gradient(135deg, #fbbf24, #06b6d4); padding: 30px; text-align: center; }}
+        .header h1 {{ color: white; margin: 0; font-size: 24px; }}
+        .content {{ background: #f9fafb; padding: 30px; }}
+        .status-box {{ background: white; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb; text-align: center; }}
+        .status {{ font-size: 24px; font-weight: bold; color: #06b6d4; }}
+        .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Update</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello,</h2>
+            <p>Your {order_type} order <strong>{order_id}</strong> has been updated.</p>
+            
+            <div class="status-box">
+                <p style="margin: 0; color: #6b7280;">New Status</p>
+                <div class="status">{status}</div>
+            </div>
+            
+            {f'<p><strong>Note from Admin:</strong><br>{order_details.get("admin_notes")}</p>' if order_details.get('admin_notes') else ''}
+            
+            <p>If you have any questions, please contact support.</p>
+        </div>
+        
+        <div class="footer">
+            <p>WestLinks Exchange Team</p>
+        </div>
+    </div>
+</body>
+</html>
+    """.strip()
+    
+    try:
+        if not settings.EMAIL_HOST_USER:
+            logger.warning("Email not configured. Status update email would be sent to: %s", recipient_email)
+            print(f"\n{'='*60}")
+            print(f"STATUS UPDATE EMAIL FOR {recipient_email}")
+            print(f"Order ID: {order_id}")
+            print(f"New Status: {status}")
+            print(f"{'='*60}\n")
+            return True
+            
+        send_mail(
+            subject=subject,
+            message=message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        logger.info(f"Status update email sent to {recipient_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send status update email to {recipient_email}: {str(e)}")
+        return False

@@ -213,6 +213,24 @@ class SellConfirmView(APIView):
             crypto_tx_hash=tx_hash or None,
         )
         t.save()
+        t.save()
+        
+        # Send email notification
+        from .email_service import send_sell_order_email
+        try:
+            email = customer_email or (v.email if v else None)
+            if email:
+                send_sell_order_email(email, {
+                    'payment_id': payment_id,
+                    'crypto_amount': usdt,
+                    'crypto_symbol': 'USDT',
+                    'fiat_amount': total,
+                    'network': network,
+                    'wallet_address': wallet_address
+                })
+        except Exception:
+            pass
+            
         return Response({'success': True, 'payment_id': payment_id})
 
 class SellGetView(APIView):

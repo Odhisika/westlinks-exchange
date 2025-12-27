@@ -27,6 +27,7 @@ urlpatterns = [
     path('sell', ProtectedTemplateView.as_view(template_name='sell.html')),
     path('sell-success', ProtectedTemplateView.as_view(template_name='sellsuccess.html')),
     path('exchange', ExchangeView.as_view()),
+    path('exchange-success', ProtectedTemplateView.as_view(template_name='exchange_success.html')),
     path('exchange/history', ProtectedTemplateView.as_view(template_name='exchange/exchangeHistory.html')),
     path('dashboard', ProtectedTemplateView.as_view(template_name='dashboard.html')),
     path('profile', ProtectedTemplateView.as_view(template_name='profile.html')),

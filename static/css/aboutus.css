@@ -1,0 +1,59 @@
+/* SECTION */
+.mission-vision-section {
+    padding: 4rem 0;
+}
+
+/* GRID */
+.mission-vision-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4rem;
+    align-items: center;
+}
+
+/* HEADINGS */
+.mission-vision-grid h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* TEXT */
+.mission-vision-grid p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+@media (max-width: 768px) {
+    .mission-vision-section {
+        padding: 3rem 1rem;
+    }
+
+    .mission-vision-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .mission-vision-grid h2 {
+        font-size: 1.6rem;
+    }
+
+    .mission-vision-grid p {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}
+
+/* VERY SMALL DEVICES */
+@media (max-width: 480px) {
+    .mission-vision-section {
+        padding: 2.5rem 1rem;
+    }
+
+    .mission-vision-grid h2 {
+        font-size: 1.4rem;
+    }
+}
