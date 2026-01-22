@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Upgrade to VIP - WestLinks Exchange{% endblock %}
+
+{% block content %}
+<section class="cvp-container" style="margin-top: 4rem; margin-bottom: 4rem;">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;">Upgrade to VIP</h1>
+        <p class="text-secondary" style="font-size: 1.125rem;">Unlock premium courses and master crypto trading</p>
+    </div>
+
+    <!-- Pricing Card -->
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div class="glass-card text-center" style="padding: 3rem;">
+            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="crown" class="text-purple-600 w-8 h-8"></i>
+
+                <h2 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 1rem;">VIP Membership</h2>
+
+                <div style="margin-bottom: 2rem;">
+                    <span style="font-size: 3rem; font-weight: 800; color: var(--primary);">₦5,000</span>
+                    <span class="text-secondary">/month</span>
+                </div>
+
+                <!-- Benefits -->
+                <div style="text-align: left; margin-bottom: 2.5rem;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="text-green-500 w-6 h-6 flex-shrink-0"></i>
+                            <span>Access to all VIP cryptocurrency courses</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="text-green-500 w-6 h-6 flex-shrink-0"></i>
+                            <span>Exclusive forex trading strategies</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="text-green-500 w-6 h-6 flex-shrink-0"></i>
+                            <span>Premium video lessons and content</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="text-green-500 w-6 h-6 flex-shrink-0"></i>
+                            <span>Priority support and updates</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Button -->
+                {% if request.user.is_authenticated %}
+                <button onclick="payWithPaystack()" class="btn bg-purple-600 text-white hover:bg-purple-700 border-none"
+                    style="width: 100%; font-size: 1.125rem; padding: 1rem;">
+                    Subscribe Now
+                </button>
+                {% else %}
+                <a href="/login?next=/upgrade" class="btn btn-primary"
+                    style="width: 100%; font-size: 1.125rem; padding: 1rem;">
+                    Sign In to Subscribe
+                </a>
+                {% endif %}
+
+                <p class="text-secondary" style="font-size: 0.875rem; margin-top: 1.5rem;">
+                    Secure payment powered by Paystack
+                </p>
+            </div>
+        </div>
+</section>
+
+{% if request.user.is_authenticated %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    const API_URL = window.location.origin + '/api';
+
+    function payWithPaystack() {
+        const user = JSON.parse(localStorage.getItem('coinvibe_user') || '{}');
+        const amount = 5000; // ₦5,000
+
+        const handler = PaystackPop.setup({
+            key: 'pk_test_xxxxxxxxxxxx', // Add your Paystack public key
+            email: user.email,
+            amount: amount * 100, // Convert to kobo
+            currency: 'GHS',
+            ref: 'VIP_' + Math.floor(Math.random() * 1000000000) + '_' + Date.now(),
+            metadata: {
+                custom_fields: [
+                    {
+                        display_name: "Subscription Type",
+                        variable_name: "subscription_type",
+                        value: "VIP Monthly"
+                    }
+                ]
+            },
+            callback: function (response) {
+                // Payment successful, verify on backend
+                verifyPayment(response.reference);
+            },
+            onClose: function () {
+                console.log('Payment window closed');
+            }
+        });
+
+        handler.openIframe();
+    }
+
+    async function verifyPayment(reference) {
+        try {
+            const token = localStorage.getItem('coinvibe_token');
+            const res = await fetch(`${API_URL}/learn/verify-payment?reference=${reference}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Show success message and redirect
+                alert('Payment successful! You now have VIP access.');
+                window.location.href = '/dashboard?vip=activated';
+            } else {
+                alert('Payment verification failed. Please contact support.');
+            }
+        } catch (error) {
+            console.error('Verification error:', error);
+            alert('Error verifying payment. Please contact support.');
+        }
+    }
+
+    // Initialize Lucide icons
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+    \u003c / script\u003e
+    {% endif %}
+    {% endblock %}

@@ -27,7 +27,26 @@ class ProtectedTemplateView(TemplateView):
         response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
+        response['Expires'] = '0'
         return response
+
+class DashboardView(ProtectedTemplateView):
+    template_name = 'dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Check for VIP membership and add courses
+        if self.request.user.is_authenticated:
+            membership = getattr(self.request.user, 'membership', None)
+            if membership and membership.is_active():
+                from learn_crypto.models import Course
+                context['vip_courses'] = Course.objects.filter(is_vip=True)
+                context['is_vip'] = True
+            else:
+                context['is_vip'] = False
+                
+        return context
 
 class BuyManualSuccessView(TemplateView):
     template_name = 'buy_success.html'

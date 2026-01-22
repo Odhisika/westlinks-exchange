@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} - Learn Crypto{% endblock %}
+
+{% block content %}
+<style>
+    /* Ensure nothing overflows viewport */
+    .course-wrapper {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .course-container {
+        width: 100%;
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .course-container {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .course-container {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+
+    /* Ensure image container doesn't overflow */
+    .image-container {
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    @media (min-width: 640px) {
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(31, 41, 55, 0.5);
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.8);
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(107, 114, 128, 1);
+    }
+</style>
+
+<div class="course-wrapper">
+    <div class="course-container" style="padding-top: 2rem; padding-bottom: 4rem;">
+        <!-- Back Link -->
+        <a href="{% url 'learn_crypto:course_list' %}"
+            class="text-gray-400 hover:text-cyan-400 mb-6 inline-flex items-center gap-2 transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Courses
+        </a>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" style="width: 100%; max-width: 100%;">
+
+            <!-- Left Column: Main Content -->
+            <div class="lg:col-span-2 space-y-6" style="width: 100%; max-width: 100%;">
+
+                <!-- Course Header Card with Image -->
+                <div class="border border-gray-800 bg-gray-900/50 rounded-xl lg:rounded-2xl"
+                    style="width: 100%; max-width: 100%; overflow: hidden;">
+                    <div class="image-container" style="height: 200px;">
+                        {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+                        {% else %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(to right, rgb(22, 78, 99), rgb(30, 58, 138));"
+                            class="flex items-center justify-center">
+                            <i data-lucide="book-open" class="text-white/20" style="width: 4rem; height: 4rem;"></i>
+                        </div>
+                        {% endif %}
+
+                        <!-- Overlay with course info -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent flex items-end"
+                            style="padding: 1rem;">
+                            <div style="width: 100%; max-width: 100%;">
+                                <!-- Badges -->
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span
+                                        class="px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider {% if course.category == 'crypto' %}bg-orange-500/20 text-orange-400 border border-orange-500/30{% else %}bg-green-500/20 text-green-400 border border-green-500/30{% endif %}">
+                                        {{ course.get_category_display }}
+                                    </span>
+                                    {% if course.is_vip %}
+                                    <span
+                                        class="px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center gap-1">
+                                        <i data-lucide="crown" class="w-3 h-3"></i> VIP
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Title -->
+                                <h1 class="font-bold text-white leading-tight"
+                                    style="font-size: clamp(1.25rem, 4vw, 2rem); word-wrap: break-word; overflow-wrap: break-word;">
+                                    {{ course.title }}
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Increase image height for larger screens -->
+                    <style>
+                        @media (min-width: 640px) {
+                            .image-container {
+                                height: 280px;
+                            }
+                        }
+
+                        @media (min-width: 1024px) {
+                            .image-container {
+                                height: 360px;
+                            }
+                        }
+                    </style>
+                </div>
+
+                <!-- About Section -->
+                <div class="border border-gray-800 bg-gray-900/50 rounded-xl p-6 lg:p-8"
+                    style="width: 100%; max-width: 100%;">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4 text-white flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> About this Course
+                    </h2>
+                    <p class="text-gray-300 leading-relaxed text-base sm:text-lg"
+                        style="word-wrap: break-word; overflow-wrap: break-word;">
+                        {{ course.description }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column: Sidebar -->
+            <div class="lg:col-span-1" style="width: 100%; max-width: 100%;">
+                <div class="border border-gray-800 bg-gray-900/50 rounded-xl p-5 lg:p-6 lg:sticky lg:top-24"
+                    style="width: 100%; max-width: 100%;">
+
+                    <!-- Header -->
+                    <h2 class="text-lg sm:text-xl font-bold mb-5 text-white flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-cyan-400"></i> Course Content
+                    </h2>
+
+                    <!-- Lessons List -->
+                    <div class="space-y-3 max-h-96 sm:max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        {% for lesson in course.lessons.all %}
+                        <a href="{% if has_access %}{% url 'learn_crypto:lesson_detail' lesson.pk %}{% else %}#{% endif %}"
+                            class="block p-3 sm:p-4 rounded-lg border border-gray-800 transition-all duration-200 {% if has_access %}hover:border-cyan-500/50 hover:bg-gray-800/50{% else %}opacity-60 cursor-not-allowed bg-gray-900/30{% endif %}"
+                            style="width: 100%; max-width: 100%;">
+
+                            <div class="flex items-center gap-3" style="width: 100%;">
+                                <!-- Lesson Number -->
+                                <div
+                                    class="flex-shrink-0 w-8 h-8 rounded-full {% if has_access %}bg-cyan-500/20 text-cyan-400{% else %}bg-gray-800 text-gray-500{% endif %} flex items-center justify-center font-bold text-sm">
+                                    {{ lesson.order }}
+                                </div>
+
+                                <!-- Lesson Info -->
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-semibold text-gray-200 text-sm sm:text-base truncate">
+                                        {{ lesson.title }}
+                                    </h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">Video Lesson</p>
+                                </div>
+
+                                <!-- Icon -->
+                                <div class="flex-shrink-0">
+                                    {% if has_access %}
+                                    <i data-lucide="play-circle" class="text-cyan-400 w-5 h-5"></i>
+                                    {% else %}
+                                    <i data-lucide="lock" class="text-gray-500 w-4 h-4"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <i data-lucide="book-open" class="w-12 h-12 text-gray-700 mx-auto mb-3"></i>
+                            <p class="text-gray-500 italic text-sm">No lessons available yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- VIP Upgrade Card -->
+                    {% if not has_access %}
+                    <div
+                        class="mt-6 p-5 bg-purple-900/20 rounded-xl border border-purple-500/30 text-center relative overflow-hidden group">
+                        <div
+                            class="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors duration-300">
+                        </div>
+                        <div class="relative z-10">
+                            <div
+                                class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30">
+                                <i data-lucide="crown" class="text-purple-400 w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-white mb-2">Unlock Full Access</h3>
+                            <p class="text-purple-300 mb-5 text-xs sm:text-sm">
+                                Upgrade to VIP membership to access this course and all other premium content.
+                            </p>
+                            <button
+                                class="w-full py-2.5 px-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold rounded-lg transition-all duration-300 text-sm sm:text-base">
+                                Get VIP Access
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

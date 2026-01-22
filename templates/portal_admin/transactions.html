@@ -1,0 +1,32 @@
+<!-- Transactions Section -->
+<section id="tab-transactions" class="tab-content hidden">
+    <div class="page-header">
+        <h1>Transaction History</h1>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <div class="flex gap-2 flex-wrap">
+                <select id="txType" class="form-control" style="width: 120px;">
+                    <option value="">All Types</option>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+                <select id="txStatus" class="form-control" style="width: 150px;">
+                    <option value="">Any Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="crypto_confirmed">Crypto Confirmed</option>
+                    <option value="paid">Paid</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+                <input id="txSearch" placeholder="Search payment ID or wallet" class="form-control"
+                    style="width: 200px;">
+                <button class="btn btn-primary" onclick="loadTransactions()">Filter</button>
+            </div>
+            <div id="txMeta" class="text-sm text-secondary"></div>
+        </div>
+        <div class="dashboard-card-body">
+            <div id="txTable"></div>
+        </div>
+    </div>
+</section>

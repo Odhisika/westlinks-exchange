@@ -60,39 +60,39 @@ function renderExchangeOrders(exchanges) {
 
         return `
             <tr>
-                <td><div class="exchange-id">${ex.exchange_id}</div></td>
-                <td>
+                <td data-label="Exchange ID"><div class="exchange-id">${ex.exchange_id}</div></td>
+                <td data-label="User">
                     <div style="font-weight: 600; font-size: 0.9rem;">${ex.vendor_name || ex.vendor_email}</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">${ex.vendor_email}</div>
                 </td>
-                <td>${directionBadge}</td>
-                <td>
+                <td data-label="Direction">${directionBadge}</td>
+                <td data-label="Sending">
                     <div class="currency-display">
                         <div class="currency-amount">${formatCurrency(ex.from_amount)}</div>
                         <div class="currency-code">${ex.from_currency}</div>
                     </div>
                 </td>
-                <td>
+                <td data-label="Receiving">
                     <div class="currency-display">
                         <div class="currency-amount">${formatCurrency(ex.to_amount)}</div>
                         <div class="currency-code">${ex.to_currency}</div>
                     </div>
                 </td>
-                <td>
+                <td data-label="Rate & Fee">
                     <div class="rate-display">1:${ex.exchange_rate.toFixed(4)}</div>
                     <div class="fee-display">Fee: ${formatCurrency(ex.fee_amount)}</div>
                 </td>
-                <td>
+                <td data-label="Recipient">
                     <div class="recipient-preview">${recipientPreview}</div>
                     <button onclick='showRecipientDetails(${JSON.stringify(ex.recipient_details).replace(/'/g, "\\'")}  , "${ex.to_currency}")' 
                             class="view-details-btn">View Details</button>
                 </td>
-                <td>
+                <td data-label="Status">
                     <span class="badge ${statusBadge.class}">${statusBadge.text}</span>
                     ${ex.paid_at ? `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">Paid: ${formatShortDate(ex.paid_at)}</div>` : ''}
                 </td>
-                <td><div class="date-display">${createdDate}</div></td>
-                <td>${actionButton}</td>
+                <td data-label="Date"><div class="date-display">${createdDate}</div></td>
+                <td data-label="Actions">${actionButton}</td>
             </tr>
         `;
     }).join('');

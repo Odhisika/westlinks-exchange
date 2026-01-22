@@ -718,7 +718,7 @@
 
                     // Redirect to admin dashboard after short delay
                     setTimeout(() => {
-                        window.location.href = '/admin/dashboard';
+                        window.location.href = '/admin/dashboard/';
                     }, 1500);
                 } else {
                     // Show error message
@@ -792,7 +792,7 @@
                     const data = await response.json();
                     if (data.valid) {
                         // Already logged in, redirect to dashboard
-                        window.location.href = '/admin/dashboard';
+                        window.location.href = '/admin/dashboard/';
                     }
                 }
             } catch (error) {

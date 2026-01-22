@@ -1,0 +1,115 @@
+<!-- Buy Orders Section -->
+<section id="tab-orders" class="tab-content hidden">
+    <div class="page-header">
+        <div>
+            <h1>Buy Orders</h1>
+            <p class="text-secondary">Manage cryptocurrency buy orders</p>
+        </div>
+        <!--  <button onclick="loadBuyOrders()" class="btn btn-secondary">
+            <i data-lucide="refresh-cw" style="width:16px;"></i> Refresh
+        </button>-->
+    </div>
+
+    <!-- Filters -->
+    <div class="dashboard-card" style="margin-bottom: 1.5rem;">
+        <div class="dashboard-card-body">
+            <div class="flex gap-3 flex-wrap">
+                <select id="filterPaymentStatus" class="form-control" style="width: 200px;">
+                    <option value="">All Payment Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                </select>
+                <select id="filterDeliveryStatus" class="form-control" style="width: 200px;">
+                    <option value="">All Delivery Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="sent">Sent</option>
+                    <option value="confirmed">Confirmed</option>
+                </select>
+                <button onclick="loadBuyOrders()" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="dashboard-card">
+        <div class="dashboard-card-body" style="padding:0;">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Asset</th>
+                            <th>Amount</th>
+                            <th>Total (GHS)</th>
+                            <th>Wallet Address</th>
+                            <th>Payment</th>
+                            <th>Delivery</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buyOrdersTableBody">
+                        <tr>
+                            <td colspan="9" class="text-center text-secondary">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal for updating buy order -->
+<div id="updateOrderModal" class="modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeUpdateOrderModal()"></div>
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 id="updateOrderModalTitle">Update Order</h3>
+            <button onclick="closeUpdateOrderModal()" class="modal-close">&times;</button>
+        </div>
+
+        <form id="updateOrderForm" onsubmit="saveOrderUpdate(event)">
+            <div class="modal-body">
+                <input type="hidden" id="updateOrderId">
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Transaction Hash (optional)</label>
+                    <input id="updateTxHash" type="text" class="form-control" placeholder="0x...">
+                    <small class="text-muted">Blockchain transaction hash</small>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Payment Status</label>
+                    <select id="updatePaymentStatus" class="form-control">
+                        <option value="pending">Pending</option>
+                        <option value="verification_pending">Verification Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Delivery Status</label>
+                    <select id="updateDeliveryStatus" class="form-control">
+                        <option value="pending">Pending</option>
+                        <option value="sent">Sent</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Admin Notes (optional)</label>
+                    <textarea id="updateAdminNotes" class="form-control" rows="3"
+                        placeholder="Internal notes..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeUpdateOrderModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>

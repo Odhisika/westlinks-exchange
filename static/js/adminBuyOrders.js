@@ -33,26 +33,26 @@ async function loadBuyOrders(page = 1) {
         data.orders.forEach(order => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="font-mono text-xs">#${order.order_id}</td>
-                <td>
+                <td data-label="Order ID" class="font-mono text-xs">#${order.order_id}</td>
+                <td data-label="Asset">
                     <div class="font-bold">${order.asset_symbol}</div>
                     <div class="text-xs text-secondary">${order.network}</div>
                 </td>
-                <td>
+                <td data-label="Amount">
                     <div>${parseFloat(order.amount_ghs).toFixed(2)} GHS</div>
                     <div class="text-xs text-secondary">$${parseFloat(order.usdt_amount).toFixed(2)}</div>
                 </td>
-                <td>₵${parseFloat(order.amount_ghs).toFixed(2)}</td>
-                <td class="font-mono text-xs" title="${order.recipient_address}">
+                <td data-label="Total (GHS)">₵${parseFloat(order.amount_ghs).toFixed(2)}</td>
+                <td data-label="Wallet Address" class="font-mono text-xs" title="${order.recipient_address}">
                     ${order.recipient_address.substring(0, 8)}...${order.recipient_address.substring(order.recipient_address.length - 6)}
                     <button onclick="copyText('${order.recipient_address}')" class="btn-icon" title="Copy">
                         <i data-lucide="copy" style="width:12px;"></i>
                     </button>
                 </td>
-                <td><span class="badge ${getPaymentStatusBadge(order.payment_status)}">${formatStatus(order.payment_status)}</span></td>
-                <td><span class="badge ${getDeliveryStatusBadge(order.delivery_status)}">${formatStatus(order.delivery_status)}</span></td>
-                <td class="text-xs">${new Date(order.created_at).toLocaleString()}</td>
-                <td>
+                <td data-label="Payment"><span class="badge ${getPaymentStatusBadge(order.payment_status)}">${formatStatus(order.payment_status)}</span></td>
+                <td data-label="Delivery"><span class="badge ${getDeliveryStatusBadge(order.delivery_status)}">${formatStatus(order.delivery_status)}</span></td>
+                <td data-label="Date" class="text-xs">${new Date(order.created_at).toLocaleString()}</td>
+                <td data-label="Actions">
                     <button onclick="openUpdateOrderModal('${order.order_id}')" class="btn btn-sm btn-primary">Update</button>
                 </td>
             `;

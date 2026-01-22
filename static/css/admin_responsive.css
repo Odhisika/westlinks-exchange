@@ -1,0 +1,107 @@
+/* Responsive Table Styles for Admin Dashboard */
+
+/* Horizontal scroll fallback for larger screens */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* Ensure table takes full width */
+.data-table {
+    width: 100%;
+    white-space: nowrap;
+}
+
+@media screen and (max-width: 1366px) {
+
+    /* Force table to not be like tables anymore */
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    /* Hide table headers (but not display: none;, for accessibility) */
+    .data-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    .data-table tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        background: var(--bg-card);
+        padding: 1rem;
+    }
+
+    .data-table td {
+        /* Behave  like a "row" */
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+        padding-left: 50% !important;
+        padding-right: 0 !important;
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .data-table td:last-child {
+        border-bottom: 0;
+        justify-content: flex-end;
+        padding-left: 0 !important;
+    }
+
+    .data-table td:before {
+        /* Now like a table header */
+        position: relative;
+        /* Top/left values mimic padding */
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: var(--text-secondary);
+        content: attr(data-label);
+        text-align: left;
+        font-size: 0.85rem;
+    }
+
+    /* Specific adjustments for content */
+    .data-table td>* {
+        text-align: right;
+    }
+
+    /* Adjust badge positioning */
+    .badge {
+        margin-left: auto;
+    }
+
+    /* Action buttons container */
+    .data-table td:last-child {
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    /* Adjust specific columns if needed */
+    .exchange-id,
+    .font-mono {
+        font-family: monospace;
+    }
+}

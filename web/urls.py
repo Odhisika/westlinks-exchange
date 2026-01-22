@@ -9,10 +9,10 @@ class AnyTemplateView(TemplateView):
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='home.html')),
-    path('admin_login.html', TemplateView.as_view(template_name='admin/login.html')),
-    path('admin/login', TemplateView.as_view(template_name='admin/login.html')),
-    path('admin_dashboard.html', TemplateView.as_view(template_name='admin/dashboard.html')),
-    path('admin/dashboard', TemplateView.as_view(template_name='admin/dashboard.html')),
+    path('admin_login.html', TemplateView.as_view(template_name='portal_admin/login.html')),
+    path('admin/login/', TemplateView.as_view(template_name='portal_admin/login.html')),
+    path('admin_dashboard.html', TemplateView.as_view(template_name='portal_admin/dashboard.html')),
+    path('admin/dashboard/', TemplateView.as_view(template_name='portal_admin/dashboard.html')),
     path('login', TemplateView.as_view(template_name='login.html')),
     path('register', TemplateView.as_view(template_name='register.html')),
     
@@ -29,7 +29,7 @@ urlpatterns = [
     path('exchange', ExchangeView.as_view()),
     path('exchange-success', ProtectedTemplateView.as_view(template_name='exchange_success.html')),
     path('exchange/history', ProtectedTemplateView.as_view(template_name='exchange/exchangeHistory.html')),
-    path('dashboard', ProtectedTemplateView.as_view(template_name='dashboard.html')),
+    path('dashboard', views.DashboardView.as_view()),
     path('profile', ProtectedTemplateView.as_view(template_name='profile.html')),
     path('payment-methods', ProtectedTemplateView.as_view(template_name='paymentMethods.html')),
     path('transactions', ProtectedTemplateView.as_view(template_name='transactions.html')),

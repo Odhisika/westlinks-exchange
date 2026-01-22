@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Vendor, VendorSession, Transaction, BuyOrder
-from .email_service import send_welcome_email
+from .models import Vendor, VendorSession, Transaction, BuyOrder, EmailVerification
+from .email_service import send_welcome_email, send_verification_email
 import secrets
 import re
 from django.views.decorators.csrf import csrf_exempt
@@ -99,16 +100,33 @@ class VendorRegisterView(APIView):
         if Vendor.objects.filter(email=email).exists():
             return Response({'detail':'email_exists', 'success': False}, status=400)
         
-        # Create vendor
-        v = Vendor(name=name, email=email, password_hash=make_password(password), momo_number=momo)
+        # Create vendor (inactive by default)
+        v = Vendor(name=name, email=email, password_hash=make_password(password), momo_number=momo, is_active=False)
         v.save()
         
-        # Send welcome email
-        email_sent = send_welcome_email(v.email, v.name)
-        if not email_sent:
-            print(f"WARNING: Failed to send welcome email to {v.email}")
+        # Generate verification code
+        code = secrets.token_hex(3).upper()  # 6 char hex code
+        expires = timezone.now() + timezone.timedelta(minutes=10)
         
-        return Response({'success': True, 'vendor': {'id': v.id, 'name': v.name, 'email': v.email, 'momo_number': v.momo_number, 'country': v.country, 'balance': v.balance, 'is_active': v.is_active, 'is_verified': v.is_verified}})
+        # Create verification record
+        EmailVerification.objects.create(
+            vendor=v,
+            code=code,
+            purpose='registration',
+            expires_at=expires
+        )
+        
+        # Send verification email
+        email_sent = send_verification_email(v.email, code, v.name, purpose='registration')
+        if not email_sent:
+            print(f"WARNING: Failed to send verification email to {v.email}")
+            
+        return Response({
+            'success': True, 
+            'requires_verification': True,
+            'email': v.email,
+            'message': 'Please check your email for a verification code.'
+        })
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VendorLoginView(APIView):
@@ -118,12 +136,112 @@ class VendorLoginView(APIView):
         v = Vendor.objects.filter(email=email).first()
         if not v or not check_password(password, v.password_hash):
             return Response({'detail':'invalid_credentials'}, status=401)
+            
+        if not v.is_active:
+            return Response({'detail': 'account_not_verified', 'requires_verification': True}, status=403)
+            
         token = secrets.token_urlsafe(32)
         expires = timezone.now() + timezone.timedelta(hours=24)
         VendorSession.objects.create(vendor=v, session_token=token, expires_at=expires)
         v.last_login = timezone.now()
         v.save()
         return Response({'success': True, 'token': token, 'expires_at': expires.isoformat(), 'vendor': {'id': v.id, 'name': v.name, 'email': v.email, 'momo_number': v.momo_number, 'country': v.country, 'balance': v.balance, 'is_active': v.is_active, 'is_verified': v.is_verified}})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class VendorVerifyEmailView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        code = request.data.get('code')
+        
+        if not email or not code:
+            return Response({'detail': 'missing_fields', 'success': False}, status=400)
+            
+        v = Vendor.objects.filter(email=email).first()
+        if not v:
+            return Response({'detail': 'user_not_found', 'success': False}, status=404)
+            
+        if v.is_active:
+            return Response({'detail': 'already_verified', 'success': False}, status=400)
+            
+        # Find valid verification code
+        verification = EmailVerification.objects.filter(
+            vendor=v,
+            code=code,
+            purpose='registration',
+            is_used=False,
+            expires_at__gt=timezone.now()
+        ).first()
+        
+        if not verification:
+            return Response({'detail': 'invalid_or_expired_code', 'success': False}, status=400)
+            
+        # Mark code as used
+        verification.is_used = True
+        verification.save()
+        
+        # Activate vendor
+        v.is_active = True
+        v.save()
+        
+        # Send welcome email now that they are verified
+        send_welcome_email(v.email, v.name)
+        
+        # Auto-login
+        token = secrets.token_urlsafe(32)
+        expires = timezone.now() + timezone.timedelta(hours=24)
+        VendorSession.objects.create(vendor=v, session_token=token, expires_at=expires)
+        v.last_login = timezone.now()
+        v.save()
+        
+        return Response({
+            'success': True, 
+            'token': token, 
+            'expires_at': expires.isoformat(), 
+            'vendor': {
+                'id': v.id, 
+                'name': v.name, 
+                'email': v.email, 
+                'momo_number': v.momo_number, 
+                'country': v.country, 
+                'balance': v.balance, 
+                'is_active': v.is_active, 
+                'is_verified': v.is_verified
+            }
+        })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class VendorResendVerificationView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        
+        if not email:
+            return Response({'detail': 'email_required', 'success': False}, status=400)
+            
+        v = Vendor.objects.filter(email=email).first()
+        if not v:
+            return Response({'detail': 'user_not_found', 'success': False}, status=404)
+            
+        if v.is_active:
+            return Response({'detail': 'already_verified', 'success': False}, status=400)
+            
+        # Invalidate old codes
+        EmailVerification.objects.filter(vendor=v, purpose='registration', is_used=False).update(is_used=True)
+        
+        # Generate new code
+        code = secrets.token_hex(3).upper()
+        expires = timezone.now() + timezone.timedelta(minutes=10)
+        
+        EmailVerification.objects.create(
+            vendor=v,
+            code=code,
+            purpose='registration',
+            expires_at=expires
+        )
+        
+        # Send email
+        send_verification_email(v.email, code, v.name, purpose='registration')
+        
+        return Response({'success': True, 'message': 'Verification code sent'})
 
 class VendorMeView(APIView):
     def get(self, request):

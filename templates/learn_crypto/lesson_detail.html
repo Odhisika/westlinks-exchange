@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} - {{ lesson.course.title }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Reading-optimized styles */
+    .lesson-wrapper {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        background: linear-gradient(to bottom, #0a0e27 0%, #131829 100%);
+    }
+
+    .lesson-container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .lesson-container {
+            padding: 0 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .lesson-container {
+            padding: 0 2rem;
+        }
+    }
+
+    /* Enhanced content card */
+    .content-card {
+        background: rgba(26, 31, 58, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .content-card:hover {
+        border-color: rgba(34, 211, 238, 0.3);
+        box-shadow: 0 25px 80px rgba(34, 211, 238, 0.15);
+    }
+
+    /* Video container */
+    .video-wrapper {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Enhanced reading experience */
+    .lesson-content {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: #d1d5db;
+        max-width: 100%;
+    }
+
+    @media (min-width: 768px) {
+        .lesson-content {
+            font-size: 1.25rem;
+            line-height: 1.9;
+        }
+    }
+
+    .lesson-content h1,
+    .lesson-content h2,
+    .lesson-content h3,
+    .lesson-content h4,
+    .lesson-content h5,
+    .lesson-content h6 {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        margin-top: 2rem !important;
+        margin-bottom: 1rem !important;
+        line-height: 1.3 !important;
+    }
+
+    .lesson-content h2 {
+        font-size: 1.875rem !important;
+    }
+
+    .lesson-content h3 {
+        font-size: 1.5rem !important;
+    }
+
+    .lesson-content h4 {
+        font-size: 1.25rem !important;
+    }
+
+    .lesson-content p {
+        margin-bottom: 1.5rem !important;
+        color: #d1d5db !important;
+    }
+
+    .lesson-content ul,
+    .lesson-content ol {
+        margin: 1.5rem 0 !important;
+        padding-left: 2rem !important;
+    }
+
+    .lesson-content li {
+        margin-bottom: 0.75rem !important;
+        color: #d1d5db !important;
+    }
+
+    .lesson-content strong,
+    .lesson-content b {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    .lesson-content a {
+        color: #22d3ee !important;
+        text-decoration: underline !important;
+        transition: color 0.2s ease !important;
+    }
+
+    .lesson-content a:hover {
+        color: #67e8f9 !important;
+    }
+
+    .lesson-content code {
+        background: rgba(31, 41, 55, 0.8) !important;
+        color: #67e8f9 !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 0.375rem !important;
+        font-size: 0.9em !important;
+        font-family: 'Monaco', 'Courier New', monospace !important;
+    }
+
+    .lesson-content blockquote {
+        border-left: 4px solid #22d3ee !important;
+        padding-left: 1.5rem !important;
+        margin: 2rem 0 !important;
+        color: #9ca3af !important;
+        font-style: italic !important;
+        background: rgba(34, 211, 238, 0.05) !important;
+        padding: 1rem 1rem 1rem 1.5rem !important;
+        border-radius: 0 0.5rem 0.5rem 0 !important;
+    }
+
+    /* Engagement Section Styles */
+    .engagement-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(31, 41, 55, 0.5);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-wrap: wrap;
+    }
+
+    .like-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 2rem;
+        color: #f87171;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .like-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: scale(1.05);
+    }
+
+    .like-btn.liked {
+        background: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .share-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        border-radius: 2rem;
+        color: #22d3ee;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .share-btn:hover {
+        background: rgba(34, 211, 238, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Comments Section */
+    .comment-card {
+        background: rgba(31, 41, 55, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .comment-form textarea {
+        width: 100%;
+        background: rgba(31, 41, 55, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        color: #fff;
+        padding: 1rem;
+        font-size: 1rem;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .comment-form textarea:focus {
+        outline: none;
+        border-color: #22d3ee;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+    }
+
+    /* Lesson sidebar */
+    .lesson-list-item {
+        transition: all 0.2s ease;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .lesson-list-item:hover {
+        transform: translateX(4px);
+        border-color: rgba(34, 211, 238, 0.4);
+        background: rgba(34, 211, 238, 0.05);
+    }
+
+    .lesson-list-item.active {
+        background: rgba(34, 211, 238, 0.1);
+        border-color: #22d3ee;
+    }
+
+    /* Navigation buttons */
+    .nav-button {
+        background: rgba(26, 31, 58, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .nav-button:hover {
+        background: rgba(34, 211, 238, 0.1);
+        border-color: #22d3ee;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+    }
+
+    /* Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(31, 41, 55, 0.5);
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(34, 211, 238, 0.5);
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(34, 211, 238, 0.8);
+    }
+
+    /* Accent glow effect */
+    .glow-accent {
+        position: relative;
+    }
+
+    .glow-accent::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .glow-accent:hover::before {
+        opacity: 1;
+    }
+</style>
+
+<div class="lesson-wrapper">
+    <div class="lesson-container" style="padding-top: 1.5rem; padding-bottom: 4rem;">
+
+        <!-- Navigation Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <a href="{% url 'learn_crypto:course_detail' lesson.course.pk %}"
+                class="text-gray-400 hover:text-cyan-400 inline-flex items-center gap-2 transition-all duration-200 glow-accent">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span class="font-medium">Back to Course</span>
+            </a>
+            <div class="flex items-center gap-2 text-sm">
+                <span
+                    class="px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-semibold">
+                    Lesson {{ lesson.order }} of {{ lesson.course.lessons.count }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Video/Content Card -->
+                <div class="content-card">
+                    {% if is_vip_course and not has_vip_access %}
+                    <!-- VIP Lock Screen -->
+                    <div class="p-12 text-center">
+                        <div
+                            class="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-purple-500/30">
+                            <i data-lucide="lock" class="text-purple-400 w-10 h-10"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-4">🔒 VIP Members Only</h2>
+                        <p class="text-gray-300 mb-8 max-w-md mx-auto text-lg">
+                            This lesson is part of our premium VIP course. Upgrade your membership to unlock all lessons
+                            and exclusive content.
+                        </p>
+                        {% if request.user.is_authenticated %}
+                        <a href="{% url 'learn_crypto:upgrade' %}"
+                            class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold rounded-xl hover:from-purple-500 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-purple-900/30">
+                            <i data-lucide="crown" class="w-5 h-5"></i>
+                            Upgrade to VIP
+                        </a>
+                        {% else %}
+                        <div class="flex gap-4 justify-center">
+                            <a href="/login?next={{ request.path }}"
+                                class="px-8 py-4 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-all">
+                                Sign In
+                            </a>
+                            <a href="/register"
+                                class="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold rounded-xl hover:from-purple-500 hover:to-purple-400 transition-all">
+                                Get VIP Access
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <!-- Video Player -->
+                    {% if lesson.video_url %}
+                    <div class="video-wrapper">
+                        <iframe src="{{ lesson.video_url }}" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    {% else %}
+                    <div
+                        class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border-b border-gray-800">
+                        <div class="text-center">
+                            <i data-lucide="video-off" class="w-16 h-16 text-gray-600 mx-auto mb-4"></i>
+                            <p class="text-gray-500 text-lg">No video available for this lesson</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Engagement Bar -->
+                    <div class="engagement-bar">
+                        <button id="likeBtn" class="like-btn {% if user_has_liked %}liked{% endif %}"
+                            data-lesson-id="{{ lesson.id }}">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                            <span id="likeCount">{{ total_likes }}</span>
+                        </button>
+
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i>
+                            <span>{{ total_comments }} Comments</span>
+                        </div>
+
+                        <div class="ml-auto flex items-center gap-2 flex-wrap">
+                            <span class="text-gray-400 text-sm mr-2">Share:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+                                target="_blank" class="share-btn"
+                                style="background: rgba(59, 89, 152, 0.1); border-color: rgba(59, 89, 152,  0.3); color: #3b5998;">
+                                <i data-lucide="facebook" class="w-4 h-4"></i>
+                            </a>
+                            <a href="https://api.whatsapp.com/send?text={{ lesson.title }}%20{{ request.build_absolute_uri }}"
+                                target="_blank" class="share-btn"
+                                style="background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.3); color: #25d366;">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?text={{ lesson.title }}&url={{ request.build_absolute_uri }}"
+                                target="_blank" class="share-btn"
+                                style="background: rgba(29, 161, 242, 0.1); border-color: rgba(29, 161, 242, 0.3); color: #1da1f2;">
+                                <i data-lucide="twitter" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Lesson Content -->
+                    <div class="p-6 sm:p-8 lg:p-10">
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+                            {{ lesson.title }}
+                        </h1>
+
+                        <div class="lesson-content">
+                            {{ lesson.content|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Comments Section -->
+                {% if not is_vip_course or has_vip_access %}
+                <div class="content-card p-6 lg:p-8">
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-6 h-6 text-cyan-400"></i>
+                        Comments ({{ total_comments }})
+                    </h3>
+
+                    <!-- Comment Form -->
+                    {% if request.user.is_authenticated %}
+                    <div class="comment-form mb-8">
+                        <textarea id="commentContent" placeholder="Ask a question or leave a comment..."
+                            rows="4"></textarea>
+                        <button id="submitComment"
+                            class="mt-4 px-6 py-3 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-xl hover:from-cyan-500 hover:to-cyan-400 transition-all">
+                            Post Comment
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center mb-8">
+                        <p class="text-gray-400 mb-4">Please sign in to leave a comment</p>
+                        <a href="/login?next={{ request.path }}"
+                            class="inline-block px-6 py-3 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-xl hover:from-cyan-500 hover:to-cyan-400 transition-all">
+                            Sign In
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Comments List -->
+                    <div id="commentsList" class="space-y-4">
+                        {% for comment in comments %}
+                        <div class="comment-card">
+                            <div class="flex items-start gap-4">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                    {{ comment.user.email.0|upper }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="font-semibold text-white">{{
+                                            comment.user.business_name|default:comment.user.email }}</span>
+                                        <span class="text-gray-500 text-sm">{{ comment.created_at|date:"F d, Y"
+                                            }}</span>
+                                    </div>
+                                    <p class="text-gray-300 whitespace-pre-wrap">{{ comment.content }}</p>
+
+                                    <!-- Replies -->
+                                    {% if comment.replies.all %}
+                                    <div class="mt-4 ml-6 space-y-3">
+                                        {% for reply in comment.replies.all %}
+                                        <div class="flex items-start gap-3 bg-gray-900/30 rounded-lg p-4">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">
+                                                {{ reply.user.email.0|upper }}
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="font-semibold text-white text-sm">{{
+                                                        reply.user.business_name|default:reply.user.email }}</span>
+                                                    <span class="text-gray-500 text-xs">{{ reply.created_at|date:"F d,
+                                                        Y" }}</span>
+                                                </div>
+                                                <p class="text-gray-300 text-sm whitespace-pre-wrap">{{ reply.content }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <i data-lucide="message-circle" class="w-12 h-12 text-gray-700 mx-auto mb-3"></i>
+                            <p class="text-gray-500">No comments yet. Be the first to comment!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Navigation Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% if previous_lesson %}
+                    <a href="{% url 'learn_crypto:lesson_detail' previous_lesson.pk %}"
+                        class="nav-button p-4 rounded-xl flex items-center justify-center gap-3 text-gray-300 hover:text-white font-semibold">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        <span>Previous Lesson</span>
+                    </a>
+                    {% else %}
+                    <div></div>
+                    {% endif %}
+
+                    {% if next_lesson %}
+                    <a href="{% url 'learn_crypto:lesson_detail' next_lesson.pk %}"
+                        class="nav-button p-4 rounded-xl flex items-center justify-center gap-3 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold hover:from-cyan-500 hover:to-cyan-400 border-cyan-500">
+                        <span>Next Lesson</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'learn_crypto:course_detail' lesson.course.pk %}"
+                        class="nav-button p-4 rounded-xl flex items-center justify-center gap-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-bold hover:from-green-500 hover:to-green-400 border-green-500">
+                        <span>Complete Course</span>
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="content-card p-6 lg:sticky lg:top-24">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-cyan-400"></i>
+                        Course Content
+                    </h3>
+
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        {% for l in lesson.course.lessons.all %}
+                        <a href="{% url 'learn_crypto:lesson_detail' l.pk %}"
+                            class="lesson-list-item {% if l.pk == lesson.pk %}active{% endif %} block p-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="flex-shrink-0 w-8 h-8 rounded-full {% if l.pk == lesson.pk %}bg-cyan-500 text-white{% else %}bg-gray-800 text-gray-400{% endif %} flex items-center justify-center font-bold text-sm">
+                                    {{ l.order }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p
+                                        class="font-semibold {% if l.pk == lesson.pk %}text-cyan-400{% else %}text-gray-300{% endif %} truncate text-sm">
+                                        {{ l.title }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-0.5">Video Lesson</p>
+                                </div>
+                                {% if l.pk == lesson.pk %}
+                                <i data-lucide="play-circle" class="w-5 h-5 text-cyan-400 flex-shrink-0"></i>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Like Button
+    document.getElementById('likeBtn')?.addEventListener('click', function () {
+        const lessonId = this.dataset.lessonId;
+
+        fetch(`/learn/lesson/${lessonId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('likeCount').textContent = data.total_likes;
+                    if (data.liked) {
+                        this.classList.add('liked');
+                    } else {
+                        this.classList.remove('liked');
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+
+    // Comment Submission
+    document.getElementById('submitComment')?.addEventListener('click', function () {
+        const content = document.getElementById('commentContent').value.trim();
+        const lessonId = document.getElementById('likeBtn').dataset.lessonId;
+
+        if (!content) {
+            alert('Please enter a comment');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('content', content);
+
+        fetch(`/learn/lesson/${lessonId}/comment/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear textarea
+                    document.getElementById('commentContent').value = '';
+
+                    // Reload page to show new comment
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error posting comment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error posting comment');
+            });
+    });
+</script>
+{% endblock %}

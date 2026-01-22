@@ -1,0 +1,26 @@
+<!-- Vendors Section -->
+<section id="tab-vendors" class="tab-content hidden">
+    <div class="page-header">
+        <h1>Vendor Management</h1>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <div class="flex gap-2 flex-wrap">
+                <input id="vendorsSearch" placeholder="Search name/email/momo" class="form-control"
+                    style="width: 250px;">
+                <select id="vendorsStatus" class="form-control" style="width: 150px;">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="verified">Verified</option>
+                    <option value="unverified">Unverified</option>
+                </select>
+                <button class="btn btn-primary" onclick="loadVendors()">Search</button>
+            </div>
+            <div id="vendorsMeta" class="text-sm text-secondary"></div>
+        </div>
+        <div class="dashboard-card-body">
+            <div id="vendorsTable"></div>
+        </div>
+    </div>
+</section>

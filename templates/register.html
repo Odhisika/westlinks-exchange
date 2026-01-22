@@ -31,7 +31,8 @@
 
       <div>
         <label>Mobile Money Number</label>
-        <input id="regMomo" type="tel" class="field" placeholder="0591234567" required />
+        <input id="regMomo" type="tel" class="field" placeholder="0591234567" required maxlength="10" pattern="0\d{9}"
+          title="Ghana phone numbers must be exactly 10 digits starting with 0" />
       </div>
 
       <div>
@@ -89,10 +90,44 @@
         Sign In</a>
     </div>
   </div>
+
+  <!-- Verification Modal -->
+  <div id="verifyModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass-card" style="max-width: 400px; width: 90%; padding: 2rem;">
+      <div class="text-center mb-4">
+        <div
+          style="width: 50px; height: 50px; background: rgba(6, 182, 212, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+          <i data-lucide="mail" style="color: var(--highlight-cyan); width: 24px; height: 24px;"></i>
+        </div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Verify Your Email</h2>
+        <p class="text-secondary" style="font-size: 0.875rem;">We sent a 6-digit code to <span id="verifyEmailDisplay"
+            style="color: var(--text-primary); font-weight: 600;"></span></p>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <input id="verifyCode" type="text" class="field" placeholder="Enter 6-digit code" maxlength="6"
+          style="text-align: center; letter-spacing: 4px; font-size: 1.25rem; font-weight: 700;" />
+      </div>
+
+      <div id="verifyError"
+        style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 0.75rem; color: #ef4444; font-size: 0.875rem; margin-bottom: 1rem; text-align: center;">
+      </div>
+
+      <button onclick="submitVerification()" id="verifyBtn" class="btn btn-success"
+        style="width: 100%; margin-bottom: 1rem;">Verify Email</button>
+
+      <button onclick="resendVerification()" id="resendBtn"
+        style="width: 100%; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem;">
+        Didn't receive code? <span class="text-cyan">Resend</span>
+      </button>
+    </div>
+  </div>
 </section>
 
 <script>
   const API_URL = window.location.origin + '/api';
+  let pendingEmail = '';
 
   function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
@@ -226,10 +261,24 @@
       });
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
+      if (!res.ok) {
         throw new Error(data.detail || 'Registration failed');
       }
 
+      if (data.requires_verification) {
+        // Show verification modal
+        pendingEmail = data.email;
+        document.getElementById('verifyEmailDisplay').textContent = pendingEmail;
+        document.getElementById('verifyModal').style.display = 'flex';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+        // Reset register button
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+        return;
+      }
+
+      // If no verification needed (fallback), auto-login
       // Update loading text for auto-login
       btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"></i> Logging you in...';
       if (window.lucide && lucide.createIcons) lucide.createIcons();
@@ -265,6 +314,90 @@
       // Reset button
       btn.disabled = false;
       btn.innerHTML = originalBtnText;
+    }
+  }
+
+  async function submitVerification() {
+    const code = document.getElementById('verifyCode').value.trim();
+    const err = document.getElementById('verifyError');
+    const btn = document.getElementById('verifyBtn');
+    const originalText = btn.innerHTML;
+
+    if (!code || code.length !== 6) {
+      err.textContent = 'Please enter a valid 6-digit code';
+      err.style.display = 'block';
+      return;
+    }
+
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"></i> Verifying...';
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+    try {
+      const res = await fetch(`${API_URL}/vendors/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail, code })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.detail || 'Verification failed');
+      }
+
+      // Success
+      btn.innerHTML = 'Verified! Redirecting...';
+      btn.classList.remove('btn-success');
+      btn.style.background = '#10b981';
+
+      localStorage.setItem('coinvibe_token', data.token);
+      localStorage.setItem('coinvibe_user', JSON.stringify(data.vendor));
+
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 1000);
+
+    } catch (error) {
+      err.textContent = error.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  async function resendVerification() {
+    const btn = document.getElementById('resendBtn');
+    const originalText = btn.innerHTML;
+    const err = document.getElementById('verifyError');
+
+    btn.disabled = true;
+    btn.innerHTML = 'Sending...';
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch(`${API_URL}/vendors/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.detail || 'Failed to resend code');
+      }
+
+      btn.innerHTML = '<span class="text-success">Code sent!</span>';
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, 3000);
+
+    } catch (error) {
+      err.textContent = error.message;
+      err.style.display = 'block';
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     }
   }
 

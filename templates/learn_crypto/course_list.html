@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Learn Crypto - WestLinks Exchange{% endblock %}
+
+{% block content %}
+<div class="cvp-container" style="margin-top: 2rem; margin-bottom: 4rem;">
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Learn Crypto & Forex</h1>
+        <p class="text-secondary">Master the markets with our expert-led courses</p>
+    </div>
+
+    <div class="flex justify-center mb-8 gap-4">
+        <a href="{% url 'learn_crypto:course_list' %}"
+            class="btn {% if not request.GET.category %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+        <a href="{% url 'learn_crypto:course_list' %}?category=crypto"
+            class="btn {% if request.GET.category == 'crypto' %}btn-primary{% else %}btn-outline{% endif %}">Crypto</a>
+        <a href="{% url 'learn_crypto:course_list' %}?category=forex"
+            class="btn {% if request.GET.category == 'forex' %}btn-primary{% else %}btn-outline{% endif %}">Forex</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for course in courses %}
+        <a href="{% url 'learn_crypto:course_detail' course.pk %}" class="modern-course-card"
+            style="text-decoration: none;">
+            <div class="modern-card-header">
+                <div class="modern-card-meta">
+                    <span>{{ course.get_category_display }}</span>
+                    {% if course.is_vip %}
+                    <span class="text-yellow" style="display: flex; align-items: center; gap: 4px;"><i
+                            data-lucide="crown" style="width: 14px; height: 14px;"></i> VIP</span>
+                    {% else %}
+                    <span class="text-cyan">Free</span>
+                    {% endif %}
+                </div>
+                <h3 class="modern-card-title">{{ course.title }}</h3>
+            </div>
+
+            <div class="modern-card-visual">
+                {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="modern-card-img">
+                {% else %}
+                <div class="flex items-center justify-center w-full h-full">
+                    <i data-lucide="book-open" class="text-gray-600 w-24 h-24 opacity-20"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="modern-card-overlay"></div>
+        </a>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="book-x" class="text-gray-400 w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-600">No courses found</h3>
+            <p class="text-gray-500">Check back later for new content!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

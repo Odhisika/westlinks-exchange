@@ -159,7 +159,6 @@
               <select id="sellPaymentMethod" class="field" onchange="loadPaymentDetails()">
                 <option value="manual">Enter manually</option>
               </select>
-
               <div id="manualFields" style="margin-top: 1.5rem; display: grid; gap: 1rem;">
                 <div>
                   <label>MoMo Network</label>
@@ -171,11 +170,11 @@
                 </div>
                 <div>
                   <label>Mobile Money Number</label>
-                  <input id="sellMoMoNumber" type="tel" class="field" placeholder="0593021696" />
+                  <input id="sellMoMoNumber" type="tel" class="field" placeholder="0593021696" maxlength="10"
+                    pattern="0\d{9}" title="Ghana phone numbers must be exactly 10 digits starting with 0" />
                 </div>
               </div>
             </div>
-
             <div class="glass-card"
               style="background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); padding: 1.5rem;">
               <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
@@ -194,17 +193,13 @@
                 </button>
               </div>
             </div>
-
             <div>
               <label>Blockchain Tx Hash (optional)</label>
               <input id="sellTxHash" type="text" class="field"
                 placeholder="Paste the transaction hash after sending funds" />
             </div>
-
             <button onclick="confirmSell()" class="btn btn-success"
               style="width: 100%; padding: 1rem; font-weight: 700; font-size: 1.125rem;">Confirm Sell Order</button>
-          </div>
-        </div>
       </section>
     </main>
   </div>

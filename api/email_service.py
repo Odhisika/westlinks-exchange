@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def send_verification_email(recipient_email: str, code: str, vendor_name: str) -> bool:
+def send_verification_email(recipient_email: str, code: str, vendor_name: str, purpose: str = 'payment_method') -> bool:
     """
     Send verification code email to user
     
@@ -16,22 +16,32 @@ def send_verification_email(recipient_email: str, code: str, vendor_name: str) -
         recipient_email: Recipient's email address
         code: 6-digit verification code
         vendor_name: Name of the vendor/user
+        purpose: Purpose of verification ('payment_method' or 'registration')
     
     Returns:
         bool: True if email sent successfully, False otherwise
     """
-    subject = "Verify Your Payment Method - WestLinks Exchange"
+    if purpose == 'registration':
+        subject = "Verify Your Email - WestLinks Exchange"
+        header_title = "Verify Your Email"
+        intro_text = "Thank you for signing up with WestLinks Exchange. Please verify your email address to complete your registration."
+        warning_text = "If you did not create an account, please ignore this email."
+    else:
+        subject = "Verify Your Payment Method - WestLinks Exchange"
+        header_title = "WestLinks Exchange"
+        intro_text = "You have requested to add a new payment method to your WestLinks Exchange account."
+        warning_text = "If you did not request this verification code, please ignore this email and contact our support team immediately."
     
     message = f"""
 Hello {vendor_name},
 
-You have requested to add a new payment method to your WestLinks Exchange account.
+{intro_text}
 
 Your verification code is: {code}
 
 This code will expire in 10 minutes.
 
-If you did not request this, please ignore this email and contact support immediately.
+{warning_text}
 
 Best regards,
 WestLinks Exchange Team
@@ -56,11 +66,11 @@ WestLinks Exchange Team
 <body>
     <div class="container">
         <div class="header">
-            <h1>WestLinks Exchange</h1>
+            <h1>{header_title}</h1>
         </div>
         <div class="content">
             <h2>Hello {vendor_name},</h2>
-            <p>You have requested to add a new payment method to your WestLinks Exchange account.</p>
+            <p>{intro_text}</p>
             
             <div class="code-box">
                 <p style="margin: 0; color: #666; font-size: 14px;">Your Verification Code</p>
@@ -69,7 +79,7 @@ WestLinks Exchange Team
             </div>
             
             <div class="warning">
-                <strong>⚠️ Security Notice:</strong> If you did not request this verification code, please ignore this email and contact our support team immediately.
+                <strong>⚠️ Notice:</strong> {warning_text}
             </div>
             
             <p>Best regards,<br>

@@ -1604,3 +1604,94 @@ thead th {
     height: 28px;
   }
 }
+
+/* Modern Course Card Styles */
+.modern-course-card {
+  background-color: #0f111a;
+  /* Very dark background */
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 320px;
+}
+
+.modern-course-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  border-color: #374151;
+}
+
+.modern-card-header {
+  margin-bottom: 0.75rem;
+  z-index: 2;
+}
+
+.modern-card-meta {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.modern-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.modern-card-visual {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: 0.5rem;
+  z-index: 1;
+}
+
+.modern-card-img {
+  max-width: 100%;
+  height: auto;
+  max-height: 160px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.modern-course-card:hover .modern-card-img {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.modern-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .modern-course-card {
+    min-height: auto;
+    aspect-ratio: 4/5;
+  }
+
+  .modern-card-title {
+    font-size: 1.25rem;
+  }
+}

@@ -44,7 +44,7 @@
 </section>
 
 <script>
-  const API_URL = window.location.origin + '/api';
+
 
   function togglePassword(id) {
     const input = document.getElementById(id);
@@ -95,7 +95,9 @@
 
       // Small delay to show success message
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next');
+        window.location.href = nextUrl || '/dashboard';
       }, 1000);
 
     } catch (errMsg) {
