@@ -247,6 +247,7 @@ class PaymentMethod(models.Model):
         super().save(*args, **kwargs)
 
 
+
 class EmailVerification(models.Model):
     """Email verification codes for payment method changes"""
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='email_verifications')
@@ -260,3 +261,41 @@ class EmailVerification(models.Model):
     
     def is_valid(self):
         return not self.is_used and timezone.now() < self.expires_at
+
+
+class Review(models.Model):
+    """User reviews and ratings for completed trades"""
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='reviews')
+    transaction = models.ForeignKey(Transaction, on_delete=models.SET_NULL, blank=True, null=True, related_name='reviews')
+    buy_order = models.ForeignKey(BuyOrder, on_delete=models.SET_NULL, blank=True, null=True, related_name='reviews')
+    
+    # Review content
+    rating = models.IntegerField(default=5, help_text="Rating from 1 to 5 stars")
+    comment = models.TextField(help_text="User's review comment")
+    
+    # Moderation
+    is_approved = models.BooleanField(default=False, help_text="Admin approval status")
+    is_featured = models.BooleanField(default=False, help_text="Highlight this review on homepage")
+    
+    # Timestamps
+    created_at = models.DateTimeField(default=timezone.now)
+    approved_at = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        # Prevent duplicate reviews for same transaction
+        constraints = [
+            models.UniqueConstraint(
+                fields=['vendor', 'transaction'],
+                name='unique_transaction_review',
+                condition=models.Q(transaction__isnull=False)
+            ),
+            models.UniqueConstraint(
+                fields=['vendor', 'buy_order'],
+                name='unique_buy_order_review',
+                condition=models.Q(buy_order__isnull=False)
+            ),
+        ]
+    
+    def __str__(self):
+        return f"Review by {self.vendor.name} - {self.rating} stars"

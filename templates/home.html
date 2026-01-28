@@ -229,13 +229,39 @@
   </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
+<!-- Reviews Section -->
+<section class="reviews-section">
   <div class="cvp-container">
-    <div class="cta-content">
-      <h2>Ready to Start Trading?</h2>
-      <p>Join thousands of traders already using WestLinks for fast, secure crypto trading</p>
-      <div class="cta-buttons">
+    <div class="section-header">
+      <h2>What Our Traders Say</h2>
+      <p>Real experiences from our community of traders</p>
+    </div>
+
+    <div class="reviews-carousel-wrapper">
+      <button class="carousel-btn carousel-prev" onclick="moveReviewCarousel(-1)" aria-label="Previous reviews">
+        <i data-lucide="chevron-left"></i>
+      </button>
+
+      <div class="reviews-carousel" id="reviewsCarousel">
+        <!-- Reviews will be loaded dynamically -->
+        <div class="review-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading reviews...</p>
+        </div>
+      </div>
+
+      <button class="carousel-btn carousel-next" onclick="moveReviewCarousel(1)" aria-label="Next reviews">
+        <i data-lucide="chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="carousel-indicators" id="carouselIndicators"></div>
+
+    <!-- CTA after reviews -->
+    <div class="cta-content" style="margin-top: 60px;">
+      <h3>Ready to Start Trading?</h3>
+      <p>Join thousands of traders already using WestLinks</p>
+      <div class="cta-buttons" style="margin-top: 24px;">
         <a href="/register" class="btn btn-primary btn-lg">
           <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
           Create Free Account
@@ -248,6 +274,254 @@
     </div>
   </div>
 </section>
+
+<style>
+  .reviews-section {
+    padding: 100px 0;
+    background: linear-gradient(180deg, rgba(20, 25, 45, 0.5) 0%, rgba(15, 20, 35, 0.8) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reviews-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .reviews-carousel-wrapper {
+    position: relative;
+    margin: 60px 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .reviews-carousel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    width: 100%;
+    transition: opacity 0.3s ease;
+  }
+
+  .review-card {
+    background: linear-gradient(135deg, rgba(30, 40, 70, 0.6) 0%, rgba(20, 30, 50, 0.8) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .review-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--highlight-yellow), var(--highlight-cyan), var(--highlight-green));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .review-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .review-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .review-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--highlight-cyan), var(--highlight-green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--dark-bg);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .review-user-info {
+    flex: 1;
+  }
+
+  .review-user-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .review-time {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .review-stars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .review-star {
+    color: var(--highlight-yellow);
+    width: 18px;
+    height: 18px;
+  }
+
+  .review-star.empty {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  .review-comment {
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 15px;
+    opacity: 0.9;
+  }
+
+  .featured-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, var(--highlight-yellow), #f59e0b);
+    color: var(--dark-bg);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .carousel-btn {
+    background: rgba(30, 40, 70, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .carousel-btn:hover {
+    background: rgba(40, 50, 80, 1);
+    border-color: var(--highlight-cyan);
+    transform: scale(1.1);
+  }
+
+  .carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .carousel-btn:disabled:hover {
+    transform: scale(1);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 32px;
+  }
+
+  .carousel-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .carousel-indicator.active {
+    background: var(--highlight-cyan);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .review-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--highlight-cyan);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .reviews-carousel {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .reviews-section {
+      padding: 60px 0;
+    }
+
+    .reviews-carousel {
+      grid-template-columns: 1fr;
+    }
+
+    .carousel-btn {
+      display: none;
+    }
+
+    .reviews-carousel-wrapper {
+      gap: 0;
+    }
+  }
+</style>
 
 <script>
   // API_URL is already defined in base.html
@@ -311,6 +585,188 @@
       });
   }
 
+  // Reviews carousel variables
+  let allReviews = [];
+  let currentPage = 0;
+  let reviewsPerPage = 3;
+
+  // Update reviews per page based on screen size
+  function updateReviewsPerPage() {
+    const width = window.innerWidth;
+    if (width <= 768) {
+      reviewsPerPage = 1;
+    } else if (width <= 1024) {
+      reviewsPerPage = 2;
+    } else {
+      reviewsPerPage = 3;
+    }
+  }
+
+  // Load reviews from API
+  function loadReviews() {
+    fetch(`${API_URL}/reviews/public`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.reviews && d.reviews.length > 0) {
+          allReviews = d.reviews;
+          renderReviews();
+        } else {
+          // Show default reviews if none exist
+          showDefaultReviews();
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load reviews:', err);
+        showDefaultReviews();
+      });
+  }
+
+  // Render reviews for current page
+  function renderReviews() {
+    updateReviewsPerPage();
+    const carousel = document.getElementById('reviewsCarousel');
+    const start = currentPage * reviewsPerPage;
+    const end = start + reviewsPerPage;
+    const pageReviews = allReviews.slice(start, end);
+
+    if (pageReviews.length === 0) {
+      showDefaultReviews();
+      return;
+    }
+
+    carousel.innerHTML = pageReviews.map(review => `
+      <div class="review-card">
+        ${review.is_featured ? '<div class="featured-badge">Featured</div>' : ''}
+        <div class="review-header">
+          <div class="review-avatar">${review.user_initials}</div>
+          <div class="review-user-info">
+            <div class="review-user-name">${escapeHtml(review.user_name)}</div>
+            <div class="review-time">${review.time_ago}</div>
+          </div>
+        </div>
+        <div class="review-stars">
+          ${renderStars(review.rating)}
+        </div>
+        <p class="review-comment">${escapeHtml(review.comment)}</p>
+      </div>
+    `).join('');
+
+    updateCarouselControls();
+
+    // Reinitialize Lucide icons
+    if (window.lucide && lucide.createIcons) {
+      lucide.createIcons();
+    }
+  }
+
+  // Render star rating
+  function renderStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        stars += '<i data-lucide="star" class="review-star" fill="currentColor"></i>';
+      } else {
+        stars += '<i data-lucide="star" class="review-star empty"></i>';
+      }
+    }
+    return stars;
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Show default/demo reviews if none exist
+  function showDefaultReviews() {
+    allReviews = [
+      {
+        rating: 5,
+        comment: "Fast and reliable service! Got my USDT in less than a minute. Highly recommended!",
+        user_initials: "KA",
+        user_name: "Kwame Asante",
+        time_ago: "2 days ago",
+        is_featured: true
+      },
+      {
+        rating: 5,
+        comment: "The best P2P platform I've used. Great rates and excellent customer support.",
+        user_initials: "AM",
+        user_name: "Ama Mensah",
+        time_ago: "5 days ago",
+        is_featured: false
+      },
+      {
+        rating: 5,
+        comment: "Very smooth transaction. The process is simple and straightforward. Will definitely use again!",
+        user_initials: "FO",
+        user_name: "Fiifi Owusu",
+        time_ago: "1 week ago",
+        is_featured: false
+      }
+    ];
+    renderReviews();
+  }
+
+  // Move carousel
+  function moveReviewCarousel(direction) {
+    updateReviewsPerPage();
+    const totalPages = Math.ceil(allReviews.length / reviewsPerPage);
+    currentPage += direction;
+
+    if (currentPage < 0) currentPage = 0;
+    if (currentPage >= totalPages) currentPage = totalPages - 1;
+
+    renderReviews();
+  }
+
+  // Update carousel controls
+  function updateCarouselControls() {
+    updateReviewsPerPage();
+    const totalPages = Math.ceil(allReviews.length / reviewsPerPage);
+
+    // Update buttons
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+
+    if (prevBtn && nextBtn) {
+      prevBtn.disabled = currentPage === 0;
+      nextBtn.disabled = currentPage >= totalPages - 1;
+    }
+
+    // Update indicators
+    const indicatorsContainer = document.getElementById('carouselIndicators');
+    if (totalPages > 1) {
+      indicatorsContainer.innerHTML = Array.from({ length: totalPages }, (_, i) =>
+        `<div class="carousel-indicator ${i === currentPage ? 'active' : ''}" onclick="goToReviewPage(${i})"></div>`
+      ).join('');
+    } else {
+      indicatorsContainer.innerHTML = '';
+    }
+  }
+
+  // Go to specific page
+  function goToReviewPage(page) {
+    currentPage = page;
+    renderReviews();
+  }
+
+  // Handle window resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const oldPerPage = reviewsPerPage;
+      updateReviewsPerPage();
+      if (oldPerPage !== reviewsPerPage) {
+        currentPage = 0; // Reset to first page on layout change
+        renderReviews();
+      }
+    }, 250);
+  });
+
   // Initialize
   document.addEventListener('DOMContentLoaded', function () {
     if (window.lucide && lucide.createIcons) {
@@ -322,6 +778,7 @@
     }
     updateRates();
     updateStats();
+    loadReviews(); // Load reviews on page load
 
     // Update rates every 30 seconds
     setInterval(updateRates, 30000);

@@ -69,12 +69,159 @@
         <a href="/buy" class="btn btn-primary">Start a New Buy</a>
       </div>
     </div>
+
+    <!-- Review Section (only show on success) -->
+    {% if success %}
+    <div class="glass-card" id="reviewSection" style="max-width: 720px; margin: 2rem auto; padding: 2rem;">
+      <div style="text-align: center;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">How was your experience?</h2>
+        <p class="text-secondary" style="margin-bottom: 1.5rem;">Your feedback helps us improve our service</p>
+      </div>
+
+      <div id="reviewForm">
+        <!-- Star Rating -->
+        <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <i data-lucide="star" class="rating-star" data-rating="1"
+            style="width: 36px; height: 36px; cursor: pointer; color: rgba(255,255,255,0.2); transition: all 0.2s;"></i>
+          <i data-lucide="star" class="rating-star" data-rating="2"
+            style="width: 36px; height: 36px; cursor: pointer; color: rgba(255,255,255,0.2); transition: all 0.2s;"></i>
+          <i data-lucide="star" class="rating-star" data-rating="3"
+            style="width: 36px; height: 36px; cursor: pointer; color: rgba(255,255,255,0.2); transition: all 0.2s;"></i>
+          <i data-lucide="star" class="rating-star" data-rating="4"
+            style="width: 36px; height: 36px; cursor: pointer; color: rgba(255,255,255,0.2); transition: all 0.2s;"></i>
+          <i data-lucide="star" class="rating-star" data-rating="5"
+            style="width: 36px; height: 36px; cursor: pointer; color: rgba(255,255,255,0.2); transition: all 0.2s;"></i>
+        </div>
+
+        <!-- Comment Textarea -->
+        <textarea id="reviewComment" placeholder="Share your experience with us (optional)..."
+          style="width: 100%; min-height: 100px; padding: 1rem; background: rgba(20,30,50,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-family: inherit; resize: vertical; margin-bottom: 1rem;"></textarea>
+
+        <!-- Submit Button -->
+        <button onclick="submitReview()" class="btn btn-primary" style="width: 100%;" id="submitReviewBtn">
+          Submit Review
+        </button>
+      </div>
+
+      <!-- Thank You Message (hidden initially) -->
+      <div id="thankYouMessage" style="display: none; text-align: center;">
+        <i data-lucide="check-circle"
+          style="width: 64px; height: 64px; color: var(--highlight-green); margin-bottom: 1rem;"></i>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Thank You for Your Feedback!</h3>
+        <p class="text-secondary">Your review will be published after admin approval.</p>
+      </div>
+    </div>
+    {% endif %}
   </section>
 
   <script>
+    const API_URL = '/api';
+    let selectedRating = 0;
+
     document.addEventListener('DOMContentLoaded', function () {
       if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+      // Star rating interaction
+      const stars = document.querySelectorAll('.rating-star');
+      stars.forEach(star => {
+        star.addEventListener('click', function () {
+          selectedRating = parseInt(this.getAttribute('data-rating'));
+          updateStars();
+        });
+
+        star.addEventListener('mouseenter', function () {
+          const rating = parseInt(this.getAttribute('data-rating'));
+          highlightStars(rating);
+        });
+      });
+
+      // Reset on mouse leave
+      const ratingContainer = document.querySelector('.rating-star')?.parentElement;
+      if (ratingContainer) {
+        ratingContainer.addEventListener('mouseleave', function () {
+          highlightStars(selectedRating);
+        });
+      }
     });
+
+    function highlightStars(rating) {
+      const stars = document.querySelectorAll('.rating-star');
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.style.color = '#fbbf24';
+          star.setAttribute('fill', 'currentColor');
+        } else {
+          star.style.color = 'rgba(255,255,255,0.2)';
+          star.setAttribute('fill', 'none');
+        }
+      });
+      if (window.lucide && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    }
+
+    function updateStars() {
+      highlightStars(selectedRating);
+    }
+
+    function submitReview() {
+      const comment = document.getElementById('reviewComment').value.trim();
+      const submitBtn = document.getElementById('submitReviewBtn');
+
+      // Validate rating
+      if (selectedRating === 0) {
+        alert('Please select a rating');
+        return;
+      }
+
+      // Validate comment
+      if (!comment) {
+        alert('Please share your experience');
+        return;
+      }
+
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      // Get vendor email from session (you might need to adjust this)
+      const vendorEmail = '{{ request.session.vendor_email|default:"" }}' || localStorage.getItem('vendor_email');
+      const orderReference = '{{ reference }}';
+
+      fetch(`${API_URL}/reviews/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vendor_email: vendorEmail,
+          rating: selectedRating,
+          comment: comment,
+          buy_order_id: orderReference
+        })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            // Show thank you message
+            document.getElementById('reviewForm').style.display = 'none';
+            document.getElementById('thankYouMessage').style.display = 'block';
+            if (window.lucide && lucide.createIcons) {
+              lucide.createIcons();
+            }
+          } else {
+            alert(data.error || 'Failed to submit review. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Review';
+          }
+        })
+        .catch(err => {
+          console.error('Error submitting review:', err);
+          alert('Failed to submit review. Please try again later.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Review';
+        });
+    }
   </script>
 </body>
 
